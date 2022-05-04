@@ -101,7 +101,7 @@ namespace Flexy.AssetRefs
 			_defaultResolver	= new PkgResolver( );
 		}
 		
-		private		static			List<(String, AssetRefResolver)>		_registeredResolvers	= new ( );
+		private		static			List<(String, AssetRefResolver)>		_registeredResolvers	= new List<(String, AssetRefResolver)>( );
 		private		static			AssetRefResolver						_defaultResolver;
 		private		static			ScnResolver								_sceneResolver;
 		

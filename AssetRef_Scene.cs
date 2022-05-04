@@ -2,6 +2,7 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = System.Object;
 
 namespace Flexy.AssetRefs
 {
@@ -14,7 +15,8 @@ namespace Flexy.AssetRefs
 		[SerializeField] String			_refAddress;
 		
 		public			Boolean			IsNone				=> String.IsNullOrEmpty( _refAddress );
-		
+		public			String			SceneName			=> _refAddress.AsSpan()[37..].ToString( );
+
 		public	async	UniTask			DownloadDependencies( IProgress<Single> progress = null )	
 		{
 			var resolver	= AssetRef.GetResolver( _refAddress );

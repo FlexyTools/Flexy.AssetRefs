@@ -1,6 +1,5 @@
 using System;
 using UnityEditor;
-using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Profiling;
 using Object = UnityEngine.Object;
@@ -46,10 +45,10 @@ namespace Flexy.AssetRefs.Editor
 			Profiler.EndSample( );
 		}
 
-		private void asasd(SearchItem arg1, Boolean arg2)
-		{
-			
-		}
+		// private void asasd(SearchItem arg1, Boolean arg2)
+		// {
+		// 	
+		// }
 	}
 	
 	[CustomPropertyDrawer(typeof(AssetRef_Scene))]
