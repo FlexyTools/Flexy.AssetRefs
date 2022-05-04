@@ -2,78 +2,22 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using AssetDatabase = UnityEditor.AssetDatabase;
 using Object = UnityEngine.Object;
-using Path = System.IO.Path;
 
 namespace Flexy.AssetRefs 
 {
-	public interface  IAssetRefsSource
-	{
-		List<Object> CollectAssets( );
-	}
-	
-	[Serializable]
-	public struct AssetRef_Scene
-	{
-		public AssetRef_Scene ( String refAddress )
-		{
-			_refAddress = refAddress;
-		}
-		
-		//load asset and then convert it to exact type
-		[SerializeField] String _refAddress;
-		
-		// address form is 3 or 4 symbols of global manager id that will handle reference then ':' then string part manager can understand 
-		// some valid predefined forms
-		// http://d1l9wtg77iuzz5.cloudfront.net/assets/5501/252869/original.jpg - manager that resolve asset from web
-		// raw:some-image-in-Rersources-folder.jpg - manager that resolve asset in raw form from resources 
-		// pkg:40B0C618-0489-4035-86C6-4B971CF735E0:25000027 - manager that will load imported unity resource from any location (Bundle, Resources, Somewhere else) 
-		// gdi:02F7179A-5061-440D-951B-539603FE0158:World.Map.12 - manager that return gdi object by guid or EntityId
-		// scn:01257675-C281-472E-A774-A69DBA7D5D82:Map.Island.12 - manager that can load scene by name
-		
-		public	Boolean IsNone			=> String.IsNullOrEmpty( _refAddress );
-		
-		public	async	UniTask			DownloadDependencies( IProgress<Single> progress = null )	
-		{
-			var resolver	= AssetRef.GetResolver( _refAddress );
-			await resolver.DownloadDependencies( _refAddress, progress );
-		}
-		public	async	UniTask<Int32>	GetDownloadSize		( )										
-		{
-			var resolver	= AssetRef.GetResolver( _refAddress );
-			return await resolver.GetDownloadSize( _refAddress );
-		}
-		
-		public 			UniTask<Scene> 	LoadSceneAsync		( IProgress<Single> progress = null )	
-		{
-			var resolver	= AssetRef.GetResolver( _refAddress );
-			return ((ScnResolver)resolver).LoadSceneAsync( _refAddress, progress );
-		}
-		
-		// public static async UniTask<AsyncOperation> LoadScene(String sceneName, Boolean allowSceneActivation = true, LoadSceneMode loadMode = LoadSceneMode.Single, IProgress<Single> progress = null )
-		// {
-		// 	return await BundleManager.LoadSceneAsync( sceneName, allowSceneActivation, loadMode, progress );
-		// }
-		// public async UniTask<AsyncOperation> LoadScene(Boolean allowSceneActivation = true,LoadSceneMode loadMode = LoadSceneMode.Single, IProgress<Single> progress = null )
-		// {
-		// 	return await LoadScene( _sceneName, allowSceneActivation, loadMode, progress);
-		// }
-	}
-	
 	[Serializable]
 	public struct AssetRef<T>
 	{
-		public AssetRef ( String refAddress )
+		public	AssetRef ( String refAddress )	
 		{
 			_refAddress = refAddress;
 		}
 		
 		// address form is 3 or 4 symbols of global manager id that will handle reference then ':' then string part manager can understand
-		[SerializeField] String _refAddress;
+		[SerializeField] String			_refAddress;
 		
-		public	Boolean IsNone			=> String.IsNullOrEmpty( _refAddress );
+		public			Boolean			IsNone				=> String.IsNullOrEmpty( _refAddress );
 		
 		public	async	UniTask			DownloadDependencies( IProgress<Single> progress = null )	
 		{
@@ -86,7 +30,7 @@ namespace Flexy.AssetRefs
 			return await resolver.GetDownloadSize( _refAddress );
 		}
 		
-		public T LoadAssetSync( )
+		public			T				LoadAssetSync		( )										
 		{
 			var resolver	= AssetRef.GetResolver( _refAddress );
 			var asset		= resolver.LoadAssetSync( _refAddress );
@@ -143,24 +87,40 @@ namespace Flexy.AssetRefs
 			
 			return false;
 		}
-
-		
 	}
 
 	public static class AssetRef
 	{
-		private		static			List<(String, AssetRefResolver)>		_registeredResolvers					= new ( );
-		private		static			AssetRefResolver						_defaultResolver;
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void Init( )
+		{
+			_registeredResolvers.Clear( );
+			_sceneResolver		= new ScnResolver( );
+			_defaultResolver	= new PkgResolver( );
+		}
 		
-		public		static			AssetRefResolver	GetResolver			( String refAddress )					
+		private		static			List<(String, AssetRefResolver)>		_registeredResolvers	= new ( );
+		private		static			AssetRefResolver						_defaultResolver;
+		private		static			ScnResolver								_sceneResolver;
+		
+		public		static			ScnResolver			GetSceneResolver	( )						
+		{
+			if( _sceneResolver == null )
+				Editor.RegisterResolversInEditor( );
+				
+			return _sceneResolver;
+		}
+		public		static			AssetRefResolver	GetResolver			( String refAddress )	
 		{
 			if( String.IsNullOrEmpty( refAddress ) || refAddress.Length < 3 )
 				return null;
 				
 			var resolverId = refAddress[3] == ':' ? refAddress.AsSpan(0, 3) : refAddress.AsSpan(0, 4);
 
+			#if UNITY_EDITOR
 			if( _registeredResolvers.Count == 0 )
 				Editor.RegisterResolversInEditor( );
+			#endif
 			
 			foreach ( var resolver in _registeredResolvers )
 			{
@@ -169,7 +129,12 @@ namespace Flexy.AssetRefs
 			}
 
 			//Debug.LogError		( $"[AssetRef] - GetManager: RefResolver id {resolverId.ToString( )} Unregistered" );
-			return null;
+			return _defaultResolver;
+		}
+		public		static			void				RegisterResolver	( AssetRefResolver resolver )
+		{
+			Debug.Log			( $"[AssetRef] - RegisterResolver: {resolver}" );
+			_registeredResolvers.Add( (resolver.Prefix, resolver)  );
 		}
 
 		public static class Editor
@@ -190,6 +155,8 @@ namespace Flexy.AssetRefs
 
 			internal static void RegisterResolversInEditor()
 			{
+				_sceneResolver = new ScnResolver( );
+				
 				foreach ( var resolverType in UnityEditor.TypeCache.GetTypesDerivedFrom(typeof(AssetRefResolver)) )
 				{
 					if( resolverType == typeof(PkgResolver) )
@@ -205,234 +172,7 @@ namespace Flexy.AssetRefs
 				_registeredResolvers.Add( (_defaultResolver.Prefix, _defaultResolver) );
 			}
 		}
-	}
-	
-	public abstract class AssetRefResolver
-	{
-		public abstract		String			Prefix					{ get ; }
-		
-		public abstract		UniTask<Object> LoadAssetAsync			( String address, IProgress<Single> progress );
-		public abstract		Object			LoadAssetSync			( String address );
-		
-		public abstract		UniTask			DownloadDependencies	( String address, IProgress<Single> progress );
-		public abstract		UniTask<Int32>	GetDownloadSize			( String address );
-
-		public abstract		Boolean			CanHandleAsset			( Type type, String path );
-		public abstract		Object			EditorLoadAsset			( String address );
-		public abstract		String			EditorCreateAssetPath	( Object asset );
-		
-	}
-	
-	public class PkgResolver : AssetRefResolver
-	{
-		public override String Prefix => "pkg";
-
-		public override Boolean			CanHandleAsset	( Type type, String path )
-		{
-			return true;
-		}
 
 		
-		
-		public override Object EditorLoadAsset( String address )
-		{
-			var guid = address.AsSpan( )[4..36].ToString( );
-			var path = AssetDatabase.GUIDToAssetPath( guid );
-			
-			return AssetDatabase.LoadAssetAtPath<Object>( path );
-		}
-
-		public override String EditorCreateAssetPath(Object asset)
-		{
-			if( AssetDatabase.IsMainAsset( asset ) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out long instanceId ) )
-				return $"pkg:{guid}";	
-			
-			if( AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
-				return $"pkg:{guid2}:{instanceId2}";	
-			
-			return "";
-		}
-
-		public override async UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
-		{
-			return EditorLoadAsset( address );
-		}
-
-		public override Object LoadAssetSync(String address)
-		{
-			return EditorLoadAsset( address );
-		}
-
-		public override UniTask DownloadDependencies(String address, IProgress<Single> progress)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override UniTask<Int32> GetDownloadSize(String address)
-		{
-			throw new NotImplementedException();
-		}
-	}
-	
-	public class RawResolver : AssetRefResolver
-	{
-		public override String Prefix => "raw";
-
-		public override Boolean CanHandleAsset(Type type, String path)
-		{
-			return path.StartsWith( "Assets/StreamingAssets/" );
-		}
-
-		public override Object EditorLoadAsset(String address)
-		{
-			return null;
-		}
-
-		public override String EditorCreateAssetPath(Object asset)
-		{
-			return AssetDatabase.GetAssetPath( asset ).AsSpan()["Assets/StreamingAssets".Length].ToString( );
-		}
-
-		public override UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override Object LoadAssetSync(String address)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override UniTask DownloadDependencies(String address, IProgress<Single> progress)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override UniTask<Int32> GetDownloadSize(String address)
-		{
-			throw new NotImplementedException();
-		}
-	}
-	
-	public class ScnResolver : AssetRefResolver
-	{
-		public override String Prefix => "scn";
-
-		public override Boolean CanHandleAsset(Type type, String path)
-		{
-			return type == typeof(UnityEditor.SceneAsset) || type == typeof(Scene) ;
-		}
-
-		public override Object EditorLoadAsset(String address)
-		{
-			var guid = address.AsSpan( )[4..36].ToString( );
-			var path = AssetDatabase.GUIDToAssetPath( guid );
-			
-			return AssetDatabase.LoadAssetAtPath<Object>( path );
-		}
-
-		public override String EditorCreateAssetPath(Object asset)
-		{
-			var guid	= AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( asset ) );
-			var mapName	= Path.GetFileName( AssetDatabase.GetAssetPath( asset ) );
-				
-			return $"scn:{guid}:{mapName}";
-		}
-
-		public override async UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
-		{
-			throw new NotImplementedException( "Dont use it for scene, Use AssetRef_Scene" );
-		}
-
-		public override Object LoadAssetSync(String address)
-		{
-			throw new NotImplementedException( "Dont use it for scene, Use AssetRef_Scene" );
-		}
-
-		public override UniTask DownloadDependencies(String address, IProgress<Single> progress)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override UniTask<Int32> GetDownloadSize(String address)
-		{
-			throw new NotImplementedException();
-		}
-
-		public async UniTask<Scene> LoadSceneAsync( String address, IProgress<Single> progress )
-		{
-			var sceneName	= address.AsSpan( )[37..].ToString( );
-			var awaitable	= SceneManager.LoadSceneAsync( sceneName );
-			var scene		= SceneManager.GetSceneAt( SceneManager.sceneCount );
-			
-			await awaitable;
-			
-			return scene;
-		}
-	}
-	
-	// public class GdiResolver : AssetRefResolver
-	// {
-	// 	public override String Prefix => "gdi";
-	//
-	// 	public override Boolean CanHandleAsset(Type type, String path)
-	// 	{
-	// 		return type == typeof(GdiObject);
-	// 	}
-	//
-	// 	public override UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
-	// 	{
-	// 		throw new NotImplementedException();
-	// 	}
-	//
-	// 	public override UniTask DownloadDependencies(String address, IProgress<Single> progress)
-	// 	{
-	// 		throw new NotImplementedException();
-	// 	}
-	//
-	// 	public override UniTask<Int32> GetDownloadSize(String address)
-	// 	{
-	// 		throw new NotImplementedException();
-	// 	}
-	// }
-	
-	public class HttpResolver : AssetRefResolver
-	{
-		public override String Prefix => "http";
-
-		public override Boolean CanHandleAsset(Type type, String path)
-		{
-			return path.StartsWith( "http://" );
-		}
-
-		public override Object EditorLoadAsset(String address)
-		{
-			return null;
-		}
-
-		public override String EditorCreateAssetPath(Object asset)
-		{
-			return null;			
-		}
-
-		public override UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override Object LoadAssetSync(String address)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override UniTask DownloadDependencies(String address, IProgress<Single> progress)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override UniTask<Int32> GetDownloadSize(String address)
-		{
-			throw new NotImplementedException();
-		}
 	}
 }
