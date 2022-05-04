@@ -1,6 +1,5 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -21,6 +20,7 @@ namespace Flexy.AssetRefs
 			return path.StartsWith( "Assets/StreamingAssets/" );
 		}
 
+		#if UNITY_EDITOR
 		public override Object EditorLoadAsset(String address)
 		{
 			return null;
@@ -28,8 +28,10 @@ namespace Flexy.AssetRefs
 
 		public override String EditorCreateAssetPath(Object asset)
 		{
-			return AssetDatabase.GetAssetPath( asset ).AsSpan()["Assets/StreamingAssets".Length].ToString( );
+			
+			return UnityEditor.AssetDatabase.GetAssetPath( asset ).AsSpan()["Assets/StreamingAssets".Length].ToString( );
 		}
+		#endif
 
 		public override UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
 		{

@@ -1,6 +1,5 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
-using UnityEditor;
 using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs
@@ -14,24 +13,26 @@ namespace Flexy.AssetRefs
 			return true;
 		}
 
+		#if UNITY_EDITOR
 		public override Object		EditorLoadAsset	( String address )			
 		{
 			var guid = address.AsSpan( )[4..36].ToString( );
-			var path = AssetDatabase.GUIDToAssetPath( guid );
+			var path = UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
 			
-			return AssetDatabase.LoadAssetAtPath<Object>( path );
+			return UnityEditor.AssetDatabase.LoadAssetAtPath<Object>( path );
 		}
 
 		public override String		EditorCreateAssetPath(Object asset)
 		{
-			if( AssetDatabase.IsMainAsset( asset ) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out long instanceId ) )
+			if( UnityEditor.AssetDatabase.IsMainAsset( asset ) && UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out long instanceId ) )
 				return $"pkg:{guid}";	
 			
-			if( AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
+			if( UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
 				return $"pkg:{guid2}:{instanceId2}";	
 			
 			return "";
 		}
+		#endif
 
 		public override async UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
 		{
@@ -47,7 +48,11 @@ namespace Flexy.AssetRefs
 
 		public override Object			LoadAssetSync(String address)
 		{
+			#if UNITY_EDITOR
 			return EditorLoadAsset( address );
+			#else
+			return null;
+			#endif
 		}
 
 		public override UniTask			DownloadDependencies(String address, IProgress<Single> progress)

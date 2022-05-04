@@ -30,6 +30,7 @@ namespace Flexy.AssetRefs
 			return await resolver.GetDownloadSize( _refAddress );
 		}
 		
+		#if UNITY_EDITOR
 		public			T				LoadAssetSync		( )										
 		{
 			var resolver	= AssetRef.GetResolver( _refAddress );
@@ -43,6 +44,7 @@ namespace Flexy.AssetRefs
 			
 			return default;
 		}
+		#endif
 		public async	UniTask<T> 		LoadAssetAsync		( IProgress<Single> progress = null )	
 		{
 			var resolver	= AssetRef.GetResolver( _refAddress );

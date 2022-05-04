@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Cysharp.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -19,24 +18,6 @@ namespace Flexy.AssetRefs
 		public static	Func<String, IProgress<Single>, UniTask<Scene>> SceneLoader;
 		
 		public					String			Prefix					=> "scn";
-
-		public virtual			Object			EditorLoadAsset			( String address )		
-		{
-			if( string.IsNullOrEmpty( address ) )
-				return null;
-			
-			var guid = address.AsSpan( )[4..36].ToString( );
-			var path = AssetDatabase.GUIDToAssetPath( guid );
-			
-			return AssetDatabase.LoadAssetAtPath<Object>( path );
-		}
-		public virtual			String			EditorCreateAssetPath	( Object asset )		
-		{
-			var guid	= AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( asset ) );
-			var mapName	= Path.GetFileName( AssetDatabase.GetAssetPath( asset ) );
-				
-			return $"scn:{guid}:{mapName}";
-		}
 
 		public virtual			UniTask			DownloadDependencies	( String address, IProgress<Single> progress )	
 		{
@@ -71,5 +52,25 @@ namespace Flexy.AssetRefs
 			
 			return scene;
 		}
+		
+		#if UNITY_EDITOR
+		public virtual			Object			EditorLoadAsset			( String address )		
+		{
+			if( string.IsNullOrEmpty( address ) )
+				return null;
+			
+			var guid = address.AsSpan( )[4..36].ToString( );
+			var path = UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
+			
+			return UnityEditor.AssetDatabase.LoadAssetAtPath<Object>( path );
+		}
+		public virtual			String			EditorCreateAssetPath	( Object asset )		
+		{
+			var guid	= UnityEditor.AssetDatabase.AssetPathToGUID( UnityEditor.AssetDatabase.GetAssetPath( asset ) );
+			var mapName	= Path.GetFileName( UnityEditor.AssetDatabase.GetAssetPath( asset ) );
+				
+			return $"scn:{guid}:{mapName}";
+		}
+		#endif
 	}
 }

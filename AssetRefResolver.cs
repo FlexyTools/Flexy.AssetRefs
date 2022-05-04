@@ -15,8 +15,10 @@ namespace Flexy.AssetRefs
 		public abstract		UniTask<Int32>	GetDownloadSize			( String address );
 
 		public abstract		Boolean			CanHandleAsset			( Type type, String path );
+		
+		#if UNITY_EDITOR
 		public abstract		Object			EditorLoadAsset			( String address );
 		public abstract		String			EditorCreateAssetPath	( Object asset );
-		
+		#endif
 	}
 }
