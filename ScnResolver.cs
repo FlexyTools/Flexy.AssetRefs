@@ -67,7 +67,7 @@ namespace Flexy.AssetRefs
 		public virtual			String			EditorCreateAssetPath	( Object asset )		
 		{
 			var guid	= UnityEditor.AssetDatabase.AssetPathToGUID( UnityEditor.AssetDatabase.GetAssetPath( asset ) );
-			var mapName	= Path.GetFileName( UnityEditor.AssetDatabase.GetAssetPath( asset ) );
+			var mapName	= Path.GetFileNameWithoutExtension( UnityEditor.AssetDatabase.GetAssetPath( asset ) );
 				
 			return $"scn:{guid}:{mapName}";
 		}

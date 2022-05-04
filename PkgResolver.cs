@@ -36,14 +36,14 @@ namespace Flexy.AssetRefs
 
 		public override async UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
 		{
-			// #if UNITY_EDITOR
-			// return EditorLoadAsset( address );
-			// #else
+			#if UNITY_EDITOR
+			return EditorLoadAsset( address );
+			#else
 			var guid	= address.AsSpan( )[4..36].ToString( );
 			var asset	= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{guid}" );
 
 			return asset.Ref;
-			//#endif
+			#endif
 		}
 
 		public override Object			LoadAssetSync(String address)
