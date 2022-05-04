@@ -1,0 +1,10 @@
+﻿**/Library/**
+**/library/**
+_Resharper.Caches/**
+**/*.csproj
+**/*.sln
+**/Temp/**
+**/.idea/**
+**/obj/**
+**/Logs/*
+**/UserSettings/*
