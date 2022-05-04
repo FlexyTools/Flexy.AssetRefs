@@ -157,6 +157,7 @@ namespace Flexy.AssetRefs
 
 			internal static void RegisterResolversInEditor()
 			{
+				#if UNITY_EDITOR
 				_sceneResolver = new ScnResolver( );
 				
 				foreach ( var resolverType in UnityEditor.TypeCache.GetTypesDerivedFrom(typeof(AssetRefResolver)) )
@@ -172,9 +173,8 @@ namespace Flexy.AssetRefs
 				}
 				
 				_registeredResolvers.Add( (_defaultResolver.Prefix, _defaultResolver) );
+				#endif
 			}
 		}
-
-		
 	}
 }

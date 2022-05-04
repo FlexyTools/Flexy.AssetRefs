@@ -1,5 +1,10 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -16,7 +21,18 @@ namespace Flexy.AssetRefs
 		public void OnPreprocessBuild( BuildReport report )
 		{
 			Debug.Log			( $"[ResourcesIRefSourceBuilder] - OnPreprocessBuild: PreProcessBuild" );
-			CreateResourcesAssetForeachAssetRefSource();
+			
+			static List<ResourcesIRefSourceBuilder> GetAllBuilders()
+	        {
+	            var getAssets = AssetDatabase.FindAssets( $"t:{typeof(ResourcesIRefSourceBuilder)}" ).Select( guid => (ResourcesIRefSourceBuilder)AssetDatabase.LoadAssetAtPath( AssetDatabase.GUIDToAssetPath( guid ), typeof(ResourcesIRefSourceBuilder) ) );
+	            var assetBundleDefinitions = getAssets.Where( asset => asset != null ).ToList( );
+	            return assetBundleDefinitions;
+	        }
+			
+			var allAssets = GetAllBuilders( );
+			
+			foreach ( var builder in allAssets )
+				builder.CreateResourcesAssetForeachAssetRefSource();
 		}
 
 		[ContextMenu("Create Resources Refs")]
@@ -34,18 +50,22 @@ namespace Flexy.AssetRefs
 					{
 						var rref = CreateInstance<ResourceRef>( );
 						rref.Ref = ca;
-						var guid = UnityEditor.AssetDatabase.AssetPathToGUID( UnityEditor.AssetDatabase.GetAssetPath( ca ) );
-						UnityEditor.AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{guid}.asset" );	
+						var guid = AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( ca ) );
+						AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{guid}.asset" );	
 					}
 				}
 				else
 				{
 					var rref = CreateInstance<ResourceRef>( );
 					rref.Ref = r;
-					var guid = UnityEditor.AssetDatabase.AssetPathToGUID( UnityEditor.AssetDatabase.GetAssetPath( r ) );
-					UnityEditor.AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{guid}.asset" );
+					var guid = AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( r ) );
+					AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{guid}.asset" );
 				}
 			}
+			
+			
 		}
 	}
 }
+
+#endif

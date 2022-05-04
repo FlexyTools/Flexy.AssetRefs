@@ -20,6 +20,7 @@ namespace Flexy.AssetRefs
 			return path.StartsWith( "http://" );
 		}
 
+		#if UNITY_EDITOR
 		public override Object EditorLoadAsset(String address)
 		{
 			return null;
@@ -29,6 +30,7 @@ namespace Flexy.AssetRefs
 		{
 			return null;			
 		}
+		#endif
 
 		public override UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
 		{
