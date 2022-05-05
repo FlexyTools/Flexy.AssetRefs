@@ -15,7 +15,7 @@ namespace Flexy.AssetRefs
 		[SerializeField] String			_refAddress;
 		
 		public			Boolean			IsNone				=> String.IsNullOrEmpty( _refAddress );
-		public			String			SceneName			=> _refAddress.AsSpan()[37..].ToString( );
+		public			String			SceneName			=> IsNone ? null : _refAddress.AsSpan()[37..].ToString( );
 
 		public	async	UniTask			DownloadDependencies( IProgress<Single> progress = null )	
 		{
