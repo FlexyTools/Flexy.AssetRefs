@@ -42,9 +42,8 @@ namespace Flexy.AssetRefs
 			awaitable		= UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode( path, new LoadSceneParameters { loadSceneMode = LoadSceneMode.Additive } );
 			#else
 			var sceneName	= address.AsSpan( )[37..].ToString( );
-			awaitable		= SceneManager.LoadSceneAsync( sceneName );
-			
-			#endif			
+			awaitable		= SceneManager.LoadSceneAsync( sceneName, LoadSceneMode.Additive );
+			#endif
 
 			var scene		= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
 		
