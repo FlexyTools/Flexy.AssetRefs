@@ -143,7 +143,7 @@ namespace Flexy.AssetRefs
 		{
 			public static AssetRefResolver GetResolverForType( Type type, String path )
 			{
-				if( _registeredResolvers.Count == 0 )
+				if( _registeredResolvers.Count == 0 || _defaultResolver == null )
 					RegisterResolversInEditor( );
 				
 				foreach ( var resolver in _registeredResolvers )
@@ -152,7 +152,7 @@ namespace Flexy.AssetRefs
 						return resolver.Item2;
 				}
 				
-				return null;
+				return _defaultResolver;
 			}
 
 			internal static void RegisterResolversInEditor()
@@ -173,6 +173,7 @@ namespace Flexy.AssetRefs
 				}
 				
 				_registeredResolvers.Add( (_defaultResolver.Prefix, _defaultResolver) );
+				
 				#endif
 			}
 		}
