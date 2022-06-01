@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -9,7 +10,7 @@ namespace Flexy.AssetRefs.Editor
 	[CustomPropertyDrawer(typeof(AssetRef<>))]
 	public class AssetRefDrawer : PropertyDrawer
 	{
-		private Object _asset;
+		private Dictionary<String, Object> _assets = new Dictionary<String, Object>( );
 		
 		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
 		{
@@ -18,26 +19,37 @@ namespace Flexy.AssetRefs.Editor
 			// var arr			= fieldInfo.GetCustomAttributes( typeof(AssetTypeAttribute), true );
 			// var attr			= (AssetTypeAttribute)( attribute ?? ( arr.Length > 0 ? arr[0] : null ) );
 
+			
 			var addressProp		= property.FindPropertyRelative( "_refAddress" );
 			var refAddress		= addressProp.stringValue;
 			
 			var type			= fieldInfo.FieldType.GetGenericArguments()[0];
 			
-			if( _asset == null )
-			 	_asset = AssetRef.GetResolver( refAddress )?.EditorLoadAsset( refAddress );
+			if( !_assets.ContainsKey( property.propertyPath ) )
+			 	_assets[property.propertyPath] = AssetRef.GetResolver( refAddress )?.EditorLoadAsset( refAddress );
 			
-			var newobj		= EditorGUI.ObjectField( position, label, _asset, type, false );
+			_assets.TryGetValue( property.propertyPath, out var asset );
 
+			//EditorGUI.BeginChangeCheck( );
+			var newobj		= EditorGUI.ObjectField( position, label, asset, type, false );
+
+			//if( EditorGUI.EndChangeCheck( ) )
 			if( newobj != null )
 			{
 				var resolver	= AssetRef.Editor.GetResolverForType( newobj.GetType(), AssetDatabase.GetAssetPath(newobj) );
 				var path		= resolver.EditorCreateAssetPath( newobj );
+				
 				addressProp.stringValue = path;
-				_asset = newobj;
+				_assets[property.propertyPath] = newobj;
 				
 				// var validateResult = resolver.Validate( );
 				// if( validateResult != validateResult.None )
 				// 	Draw.ErrorBox( $"ref currently is not valid: {validateResult}" );
+			}
+			else
+			{
+				addressProp.stringValue = null;
+				_assets[property.propertyPath] = null;
 			}
 			
 			// Validate Reference

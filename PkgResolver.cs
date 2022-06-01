@@ -51,7 +51,10 @@ namespace Flexy.AssetRefs
 			#if UNITY_EDITOR
 			return EditorLoadAsset( address );
 			#else
-			return null;
+			var guid	= address.AsSpan( )[4..36].ToString( );
+			var asset	= UnityEngine.Resources.Load<ResourceRef>( $"AssetRefs/{guid}" );
+			
+			return asset.Ref;
 			#endif
 		}
 
