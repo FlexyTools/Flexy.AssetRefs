@@ -3,7 +3,8 @@
     "rootNamespace": "Flexy.AssetRefs",
     "references": [
         "GUID:f51ebe6a0ceec4240a699833d6309b23",
-        "GUID:529b74b51f9df9847a64e490b76761e8"
+        "GUID:529b74b51f9df9847a64e490b76761e8",
+        "GUID:43a3749a1730bca498057d7853cfda5f"
     ],
     "includePlatforms": [
         "Editor"

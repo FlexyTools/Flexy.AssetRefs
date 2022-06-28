@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
+using Flexy.Utils.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -10,6 +13,8 @@ namespace Flexy.AssetRefs.Editor
 	[CustomPropertyDrawer(typeof(AssetRef<>))]
 	public class AssetRefDrawer : PropertyDrawer
 	{
+		const Single _imageHeight = 60;
+		
 		private Dictionary<String, Object> _assets = new Dictionary<String, Object>( );
 		
 		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
@@ -30,9 +35,15 @@ namespace Flexy.AssetRefs.Editor
 			
 			_assets.TryGetValue( property.propertyPath, out var asset );
 
+			var drawPreview		= DrawPreview( addressProp, fieldInfo ); 
+			var isInline		= ArrayTableDrawer.DrawingInTableGUI;
+			
+			if( drawPreview & isInline )
+				position.xMin	+= 80;
+			
 			//EditorGUI.BeginChangeCheck( );
 			var newobj		= EditorGUI.ObjectField( position, label, asset, type, false );
-
+			
 			//if( EditorGUI.EndChangeCheck( ) )
 			if( newobj != null )
 			{
@@ -45,83 +56,101 @@ namespace Flexy.AssetRefs.Editor
 				// var validateResult = resolver.Validate( );
 				// if( validateResult != validateResult.None )
 				// 	Draw.ErrorBox( $"ref currently is not valid: {validateResult}" );
+				if( drawPreview )
+				{
+					var sprite		= newobj as Sprite;
+					var tx			= newobj is Sprite sp ? sp.texture : newobj as Texture2D;
+					
+					if( isInline )
+					{
+						var spriteRect		= position;
+						var isOdd			= ArrayTableDrawer.DrawingArrayElementOnPage % 2 == 0; 
+						
+						//Debug.Log			( $"[AssetRefDrawer] - OnGUI: {(Int32)spriteRect.y}" );
+						
+						spriteRect.xMin		-= 80;
+						spriteRect.width	= 40;
+						spriteRect.height	= 40;
+						
+						if( !isOdd )
+						{
+							spriteRect.y	-= 20;
+							spriteRect.x	+= 40;
+						}
+						
+						if( sprite is {} )
+							DrawTexturePreview(spriteRect, sprite );
+						else
+							GUI.DrawTexture(spriteRect, tx, ScaleMode.ScaleToFit);
+					}
+					else
+					{
+						position.y += 5;
+		                position.height = _imageHeight + EditorGUI.GetPropertyHeight(property, label, true);
+		                //EditorGUI.DrawPreviewTexture(position, sprite.texture, null, ScaleMode.ScaleToFit, 0);
+		                if( sprite is {} )
+							DrawTexturePreview(position, sprite );
+						else
+							GUI.DrawTexture(position, tx, ScaleMode.ScaleToFit);
+					}
+				}
 			}
 			else
 			{
 				addressProp.stringValue = null;
 				_assets[property.propertyPath] = null;
 			}
-			
 			// Validate Reference
 			
 			Profiler.EndSample( );
 		}
 
+		private void DrawTexturePreview(Rect position, Sprite sprite)
+        {
+            var fullSize	= new Vector2(sprite.texture.width, sprite.texture.height);
+            var size		= new Vector2(sprite.textureRect.width, sprite.textureRect.height);
+ 
+            var coords = sprite.textureRect;
+            coords.x /= fullSize.x;
+            coords.width /= fullSize.x;
+            coords.y /= fullSize.y;
+            coords.height /= fullSize.y;
+ 
+            Vector2 ratio;
+            ratio.x = position.width / size.x;
+            ratio.y = position.height / size.y;
+            var minRatio = Mathf.Min(ratio.x, ratio.y);
+ 
+            var center = position.center;
+            position.width = size.x * minRatio;
+            position.height = size.y * minRatio;
+            position.center = center;
+ 
+            GUI.DrawTextureWithTexCoords(position, sprite.texture, coords);
+        }
+		
 		// private void asasd(SearchItem arg1, Boolean arg2)
 		// {
 		// 	
 		// }
-	}
-	
-	[CustomPropertyDrawer(typeof(AssetRef_Scene))]
-	public class AssetRef_SceneDrawer : PropertyDrawer
-	{
-		private Object _asset;
-		
-		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
+		public static Boolean DrawPreview( SerializedProperty property, FieldInfo fieldInfo )
 		{
-			Profiler.BeginSample( "AssetRefDrawer" );
+			var type			= fieldInfo.FieldType.GetGenericArguments()[0];
 			
-			// var arr			= fieldInfo.GetCustomAttributes( typeof(AssetTypeAttribute), true );
-			// var attr			= (AssetTypeAttribute)( attribute ?? ( arr.Length > 0 ? arr[0] : null ) );
-
-			var addressProp		= property.FindPropertyRelative( "_refAddress" );
-			var refAddress		= addressProp.stringValue;
-
-			var type			= typeof(SceneAsset);
-			
-			// 	Action<SearchItem, Boolean> asd = asasd;
-			// 	//var qs	= SearchService.ShowPicker( new SearchContext( new []{new SearchProvider("p:")},  "Assets/!GDInfo"), asd );
-			
-			//Debug.Log			( $"[AssetRefDrawer] - OnGUI: {type}" );
-			
-			if( _asset == null )
-			 	_asset = AssetRef.GetSceneResolver( ).EditorLoadAsset( refAddress );
-			
-			var newobj		= EditorGUI.ObjectField( position, label, _asset, type, false );
-
-			if( newobj != null )
-			{
-				var resolver	= AssetRef.GetSceneResolver( );
-				var path		= resolver.EditorCreateAssetPath( newobj );
-				addressProp.stringValue = path;
-				_asset = newobj;
-			}
-			
-			// Validate Reference
-			
-			Profiler.EndSample( );
+			return type == typeof(Sprite) && property.stringValue is {} str && !String.IsNullOrWhiteSpace( str ); 
 		}
+	 
+	    public override float GetPropertyHeight( SerializedProperty property, GUIContent label )
+	    {
+	        var addressProp		= property.FindPropertyRelative( "_refAddress" );
+			
+			if ( DrawPreview( addressProp, fieldInfo ) && !ArrayTableDrawer.DrawingInTableGUI )
+	        {
+	            return EditorGUI.GetPropertyHeight(addressProp, label, true) + _imageHeight + 10;
+	        }
+			
+			
+	        return EditorGUI.GetPropertyHeight(addressProp, label, true);
+	    }
 	}
-	
-	// [CustomPropertyDrawer(typeof(AssetRefScene))]
-	// public class AssetRefSceneDrawer : PropertyDrawer 
-	// {
-	// 	public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
-	// 	{
-	// 		var guidProp		= property.FindPropertyRelative( AssetRefScene.Internal.GuidFieldName );
-	// 		var nameSceneProp	= property.FindPropertyRelative( AssetRefScene.Internal.SceneNameFiledName );
-	// 		var guid			= guidProp.stringValue;
-	// 		var nameScene		= nameSceneProp.stringValue;
-	//
-	// 		var obj			= EditorAssetBundlesDelivery.LoadAssetBypassBungles( guid, nameScene );
-	// 		var newobj		= (SceneAsset) EditorGUI.ObjectField( position, label, obj, typeof(SceneAsset), false );
-	//
-	// 		if( obj != newobj )
-	// 		{
-	// 			guidProp.stringValue = EditorAssetBundlesDelivery.GetAssetRefGuid( newobj );
-	// 			nameSceneProp.stringValue = newobj.name;
-	// 		}
-	// 	}
-	// }
 }
