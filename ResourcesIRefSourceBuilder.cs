@@ -44,6 +44,12 @@ namespace Flexy.AssetRefs
 			
 			foreach ( var r in Resources )
 			{
+				if ( !r )
+				{
+					Debug.LogError( $"[ResourcesIRefSourceBuilder] - CreateResourcesAssetForeachAssetRefSource: resource is null in {this.name} object. Skipped", this );
+					continue;
+				}
+
 				if( r is IAssetRefsSource ars )
 				{
 					foreach ( var ca in ars.CollectAssets( ) )
