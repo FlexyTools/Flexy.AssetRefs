@@ -28,16 +28,7 @@ namespace Flexy.AssetRefs.Editor
 			var addressProp		= property.FindPropertyRelative( "_refAddress" );
 			var refAddress		= addressProp.stringValue;
 			
-			var type			= default(Type);
-			
-			if( fieldInfo.FieldType.IsArray )
-				type = fieldInfo.FieldType.GetElementType()?.GetGenericArguments()[0];
-			
-			else if( fieldInfo.FieldType.IsGenericType && fieldInfo.FieldType.GetGenericTypeDefinition() == typeof(List<>) )
-				type = fieldInfo.FieldType.GetGenericArguments()[0].GetGenericArguments()[0];
-					 
-			else
-				type = fieldInfo.FieldType.GetGenericArguments()[0];
+			var type			= GetFieldType( fieldInfo );
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
 			 	_assets[property.propertyPath] = AssetRef.GetResolver( refAddress )?.EditorLoadAsset( refAddress );
@@ -138,13 +129,29 @@ namespace Flexy.AssetRefs.Editor
             GUI.DrawTextureWithTexCoords(position, sprite.texture, coords);
         }
 		
+		private static Type GetFieldType( FieldInfo fieldInfo )
+		{
+			var type			= default(Type);
+			
+			if( fieldInfo.FieldType.IsArray )
+				type = fieldInfo.FieldType.GetElementType()?.GetGenericArguments()[0];
+			
+			else if( fieldInfo.FieldType.IsGenericType && fieldInfo.FieldType.GetGenericTypeDefinition() == typeof(List<>) )
+				type = fieldInfo.FieldType.GetGenericArguments()[0].GetGenericArguments()[0];
+					 
+			else
+				type = fieldInfo.FieldType.GetGenericArguments()[0];
+			
+			return type;
+		}
+		
 		// private void asasd(SearchItem arg1, Boolean arg2)
 		// {
 		// 	
 		// }
 		public static Boolean DrawPreview( SerializedProperty property, FieldInfo fieldInfo )
 		{
-			var type			= fieldInfo.FieldType.GetGenericArguments()[0];
+			var type			= GetFieldType( fieldInfo );
 			
 			return type == typeof(Sprite) && property.stringValue is {} str && !String.IsNullOrWhiteSpace( str ); 
 		}
