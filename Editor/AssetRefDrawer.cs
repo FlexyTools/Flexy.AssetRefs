@@ -28,7 +28,16 @@ namespace Flexy.AssetRefs.Editor
 			var addressProp		= property.FindPropertyRelative( "_refAddress" );
 			var refAddress		= addressProp.stringValue;
 			
-			var type			= fieldInfo.FieldType.GetGenericArguments()[0];
+			var type			= default(Type);
+			
+			if( fieldInfo.FieldType.IsArray )
+				type = fieldInfo.FieldType.GetElementType()?.GetGenericArguments()[0];
+			
+			else if( fieldInfo.FieldType.IsGenericType && fieldInfo.FieldType.GetGenericTypeDefinition() == typeof(List<>) )
+				type = fieldInfo.FieldType.GetGenericArguments()[0].GetGenericArguments()[0];
+					 
+			else
+				type = fieldInfo.FieldType.GetGenericArguments()[0];
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
 			 	_assets[property.propertyPath] = AssetRef.GetResolver( refAddress )?.EditorLoadAsset( refAddress );
