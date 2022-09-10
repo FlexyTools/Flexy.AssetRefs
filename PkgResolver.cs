@@ -14,8 +14,11 @@ namespace Flexy.AssetRefs
 		}
 
 		#if UNITY_EDITOR
-		public override Object		EditorLoadAsset	( String address )			
+		public override Object		EditorLoadAsset	( String address )
 		{
+			if ( String.IsNullOrEmpty( address ) || String.Equals( address, "null", StringComparison.Ordinal ) )
+				return null;
+
 			var guid = address.AsSpan( )[4..36].ToString( );
 			var path = UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
 			
