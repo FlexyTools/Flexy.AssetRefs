@@ -14,7 +14,7 @@ namespace Flexy.AssetRefs
 		}
 
 		#if UNITY_EDITOR
-		public override Object		EditorLoadAsset	( String address )
+		public override Object		EditorLoadAsset	( String address, Type type )
 		{
 			if ( String.IsNullOrEmpty( address ) || String.Equals( address, "null", StringComparison.Ordinal ) )
 				return null;
@@ -22,7 +22,7 @@ namespace Flexy.AssetRefs
 			var guid = address.AsSpan( )[4..36].ToString( );
 			var path = UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
 			
-			return UnityEditor.AssetDatabase.LoadAssetAtPath<Object>( path );
+			return UnityEditor.AssetDatabase.LoadAssetAtPath( path, type );
 		}
 
 		public override String		EditorCreateAssetPath(Object asset)
@@ -37,10 +37,10 @@ namespace Flexy.AssetRefs
 		}
 		#endif
 
-		public override async UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
+		public override async UniTask<T> LoadAssetAsync<T>(String address, IProgress<Single> progress)
 		{
 			#if UNITY_EDITOR
-			return EditorLoadAsset( address );
+			return (T)EditorLoadAsset( address, typeof(T) );
 			#else
 			var guid	= address.AsSpan( )[4..36].ToString( );
 			var asset	= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{guid}" );
@@ -49,10 +49,10 @@ namespace Flexy.AssetRefs
 			#endif
 		}
 
-		public override Object			LoadAssetSync(String address)
+		public override T			LoadAssetSync<T>(String address)
 		{
 			#if UNITY_EDITOR
-			return EditorLoadAsset( address );
+			return (T)EditorLoadAsset( address, typeof(T) );
 			#else
 			var guid	= address.AsSpan( )[4..36].ToString( );
 			var asset	= UnityEngine.Resources.Load<ResourceRef>( $"AssetRefs/{guid}" );

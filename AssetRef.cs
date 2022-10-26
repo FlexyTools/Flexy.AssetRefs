@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 namespace Flexy.AssetRefs 
 {
 	[Serializable]
-	public struct AssetRef<T>
+	public struct AssetRef<T> where T:UnityEngine.Object
 	{
 		public	AssetRef ( String refAddress )	
 		{
@@ -21,19 +21,19 @@ namespace Flexy.AssetRefs
 		
 		public	async	UniTask			DownloadDependencies( IProgress<Single> progress = null )	
 		{
-			var resolver	= AssetRef.GetResolver( _refAddress );
+			var resolver	= AssetRef.GetPkgResolver( );
 			await resolver.DownloadDependencies( _refAddress, progress );
 		}
 		public	async	UniTask<Int32>	GetDownloadSize		( )										
 		{
-			var resolver	= AssetRef.GetResolver( _refAddress );
+			var resolver	= AssetRef.GetPkgResolver( );
 			return await resolver.GetDownloadSize( _refAddress );
 		}
 		
 		public			T				LoadAssetSync		( )										
 		{
-			var resolver	= AssetRef.GetResolver( _refAddress );
-			var asset		= resolver.LoadAssetSync( _refAddress );
+			var resolver	= AssetRef.GetPkgResolver( );
+			var asset		= resolver.LoadAssetSync<T>( _refAddress );
 			
 			if( asset is T tr )
 				return tr;
@@ -46,8 +46,8 @@ namespace Flexy.AssetRefs
 		
 		public async	UniTask<T> 		LoadAssetAsync		( IProgress<Single> progress = null )	
 		{
-			var resolver	= AssetRef.GetResolver( _refAddress );
-			var asset		= await resolver.LoadAssetAsync( _refAddress, progress );
+			var resolver	= AssetRef.GetPkgResolver( );
+			var asset		= await resolver.LoadAssetAsync<T>( _refAddress, progress );
 			
 			if( asset is T tr )
 				return tr;
@@ -103,6 +103,7 @@ namespace Flexy.AssetRefs
 		private		static			List<(String, AssetRefResolver)>		_registeredResolvers	= new List<(String, AssetRefResolver)>( );
 		private		static			AssetRefResolver						_defaultResolver;
 		private		static			ScnResolver								_sceneResolver;
+		private		static			PkgResolver								_pkgResolver;
 		
 		public		static			ScnResolver			GetSceneResolver	( )						
 		{
@@ -110,6 +111,13 @@ namespace Flexy.AssetRefs
 				Editor.RegisterResolversInEditor( );
 				
 			return _sceneResolver;
+		}
+		public		static			PkgResolver			GetPkgResolver		( )						
+		{
+			if( _pkgResolver == null )
+				Editor.RegisterResolversInEditor( );
+				
+			return _pkgResolver;
 		}
 		public		static			AssetRefResolver	GetResolver			( String refAddress )	
 		{

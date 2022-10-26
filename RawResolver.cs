@@ -21,7 +21,7 @@ namespace Flexy.AssetRefs
 		}
 
 		#if UNITY_EDITOR
-		public override Object EditorLoadAsset(String address)
+		public override Object EditorLoadAsset(String address, Type type)
 		{
 			return null;
 		}
@@ -33,12 +33,12 @@ namespace Flexy.AssetRefs
 		}
 		#endif
 
-		public override UniTask<Object> LoadAssetAsync(String address, IProgress<Single> progress)
+		public override UniTask<T> LoadAssetAsync<T>(String address, IProgress<Single> progress)
 		{
 			throw new NotImplementedException();
 		}
 
-		public override Object LoadAssetSync(String address)
+		public override T LoadAssetSync<T>(String address)
 		{
 			throw new NotImplementedException();
 		}
