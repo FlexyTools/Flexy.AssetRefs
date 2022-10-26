@@ -1,4 +1,4 @@
-﻿**/Library/**
+**/Library/**
 **/library/**
 _Resharper.Caches/**
 **/*.csproj
@@ -8,3 +8,4 @@ _Resharper.Caches/**
 **/obj/**
 **/Logs/*
 **/UserSettings/*
+**/.DS_Store
