@@ -1,19 +1,19 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Flexy.AssetBundles;
+using Flexy.AssetRefs;
 using UnityEngine;
 
 public class Awp3DModel : MonoBehaviour
 {
-	public AssetRef _refWeapon;
-	public AssetRef	_refWeaponMaterial;
-	public AssetRef _refGateMesh;
+	public AssetRef<GameObject> _refWeapon;
+	public AssetRef<Material>	_refWeaponMaterial;
+	public AssetRef<Mesh> _refGateMesh;
 
 	public async void LoadPartOfWeapon( )
 	{
 		DestroyAllChildren();
-		var material 	= await _refWeaponMaterial.LoadAssetTyped<Material>(  );
-		var mesh 		= await _refGateMesh.LoadAssetTyped<Mesh>(  );
+		var material 	= await _refWeaponMaterial.LoadAssetAsync( );
+		var mesh 		= await _refGateMesh.LoadAssetAsync( );
 		var awpGate 	= new GameObject("awp_gate",typeof(MeshFilter),typeof(MeshRenderer));
 		awpGate.transform.SetParent( transform );
 		awpGate.transform.localPosition                 = Vector3.zero;
@@ -27,7 +27,7 @@ public class Awp3DModel : MonoBehaviour
 		Debug.Log			( $"[Awp3DModel] - LoadFullWeapon: {await _refWeapon.GetDownloadSize(  )}" );
 		//return;
 		DestroyAllChildren();
-		var obj = await _refWeapon.LoadAsset(  );
+		var obj = await _refWeapon.LoadAssetAsync(  );
 		Instantiate( obj, transform);
 	}
 	

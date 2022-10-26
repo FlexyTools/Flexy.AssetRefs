@@ -16,6 +16,23 @@
         "com.cysharp.unitask": "2.2.5"
       }
     },
+    "com.flexy.jsonx": {
+      "version": "https://bitbucket.daw.studio/scm/flexy/flexy.jsonx.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "084e4056bc2c0fa35dbeb9d1692628134176d580"
+    },
+    "com.flexy.utils": {
+      "version": "https://bitbucket.daw.studio/scm/flexy/flexy.utils.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "2.0.0",
+        "com.flexy.jsonx": "1.0.0"
+      },
+      "hash": "191238a81b577d3d4f692565c4161ae40bccff0b"
+    },
     "com.unity.ext.nunit": {
       "version": "1.0.6",
       "depth": 1,
@@ -51,6 +68,13 @@
     "com.unity.mobile.android-logcat": {
       "version": "1.3.2",
       "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.nuget.newtonsoft-json": {
+      "version": "3.0.2",
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"

@@ -1,13 +1,13 @@
 ﻿using System;
-using Flexy.AssetBundles;
+using Flexy.AssetRefs;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class MainScene : MonoBehaviour
 {
-	public	BundleRef		_bundle;
-	public  AssetRefScene _sceneA;
-	public  AssetRefScene _sceneB;
+	//public	AssetRef_Bundle	_bundle;
+	public  AssetRef_Scene _sceneA;
+	public  AssetRef_Scene _sceneB;
 	private static Boolean _bundleManagerInited;
 
 	private Boolean UseStreamingAssets
@@ -24,11 +24,11 @@ public class MainScene : MonoBehaviour
 
 	private async void Start()
 	{
-		Debug.Log			( $"[MainScene] - Start: {String.Join( ", ",_bundle.BundleNames )}" );
+		//Debug.Log			( $"[MainScene] - Start: {String.Join( ", ",_bundle.BundleNames )}" );
 		if (!_bundleManagerInited)
 		{
 			Debug.Log			( $"[MainScene] - Start: start init" );
-			await BundleManager.Init( UseStreamingAssets );
+			//await BundleManager.Init( UseStreamingAssets );
 			Debug.Log			( $"[MainScene] - Start: was inited" );
 			_bundleManagerInited = true;
 		}
@@ -39,11 +39,11 @@ public class MainScene : MonoBehaviour
 	public	void	LoadSceneA()
 	{
 		Debug.Log			( $"[MainScene] - LoadSceneA: load scene A" );
-		_sceneA.LoadScene(  );
+		_sceneA.LoadSceneAsync(  );
 	}
 	public	void	LoadSceneB()
 	{
 		Debug.Log			( $"[MainScene] - LoadSceneA: load scene B" );
-		_sceneB.LoadScene(  );
+		_sceneB.LoadSceneAsync(  );
 	}
 }

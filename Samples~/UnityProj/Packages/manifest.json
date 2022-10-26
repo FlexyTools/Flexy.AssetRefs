@@ -2,6 +2,8 @@
   "dependencies": {
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.flexy.assetrefs": "file:../../../",
+    "com.flexy.utils": "https://bitbucket.daw.studio/scm/flexy/flexy.utils.git",
+    "com.flexy.jsonx": "https://bitbucket.daw.studio/scm/flexy/flexy.jsonx.git",
     "com.unity.ide.rider": "3.0.15",
     "com.unity.ide.visualstudio": "2.0.16",
     "com.unity.ide.vscode": "1.2.5",
