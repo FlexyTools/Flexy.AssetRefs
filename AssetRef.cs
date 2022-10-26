@@ -166,6 +166,7 @@ namespace Flexy.AssetRefs
 			{
 				#if UNITY_EDITOR
 				_sceneResolver = new ScnResolver( );
+				_pkgResolver = new PkgResolver( );
 				
 				foreach ( var resolverType in UnityEditor.TypeCache.GetTypesDerivedFrom(typeof(AssetRefResolver)) )
 				{

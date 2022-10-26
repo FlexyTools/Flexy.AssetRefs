@@ -1,5 +1,6 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs
