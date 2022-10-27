@@ -30,8 +30,13 @@ namespace Flexy.AssetRefs
 		{
 			var awaitable	= default(AsyncOperation);
 			
+			
+			
 			#if UNITY_EDITOR
-			var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( sceneRef.Address );
+			var address		= sceneRef.Address;
+			if( address[3] == ':' )
+				address = address[4..];
+			var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( address );
 			awaitable		= UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode( path, new LoadSceneParameters { loadSceneMode = LoadSceneMode.Additive } );
 			#else
 			var asset		= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{address}" );

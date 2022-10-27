@@ -49,6 +49,9 @@ namespace Flexy.AssetRefs
 
 		public override T			LoadAssetSync<T>(String address)
 		{
+			if( address[3] == ':' )
+				address = address[4..];
+			
 			#if UNITY_EDITOR
 			return (T)EditorLoadAsset( address, typeof(T) );
 			#else
