@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Flexy.JsonX;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs 
 {
 	[Serializable]
-	public struct AssetRef<T> where T:UnityEngine.Object
+	public struct AssetRef<T> : ISerializeAsString where T:UnityEngine.Object
 	{
 		public	AssetRef ( String refAddress )	
 		{
@@ -88,6 +89,15 @@ namespace Flexy.AssetRefs
 			
 			return false;
 		}
+
+		public override	String	ToString	( )				
+		{
+			return _refAddress;
+		}
+		public			void	FromString	( String data )	
+		{
+			_refAddress = data;
+		}
 	}
 
 	public static class AssetRef
@@ -95,15 +105,12 @@ namespace Flexy.AssetRefs
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void Init( )
 		{
-			_registeredResolvers.Clear( );
 			_sceneResolver		= new ScnResolver( );
-			_defaultResolver	= new PkgResolver( );
+			_assetResolver		= new AssetResolver( );
 		}
 		
-		private		static			List<(String, AssetRefResolver)>		_registeredResolvers	= new List<(String, AssetRefResolver)>( );
-		private		static			AssetRefResolver						_defaultResolver;
 		private		static			ScnResolver								_sceneResolver;
-		private		static			PkgResolver								_pkgResolver;
+		private		static			AssetResolver							_assetResolver;
 		
 		public		static			ScnResolver			GetSceneResolver	( )						
 		{
@@ -112,76 +119,35 @@ namespace Flexy.AssetRefs
 				
 			return _sceneResolver;
 		}
-		public		static			PkgResolver			GetPkgResolver		( )						
+		public		static			AssetResolver		GetPkgResolver		( )						
 		{
-			if( _pkgResolver == null )
+			if( _assetResolver == null )
 				Editor.RegisterResolversInEditor( );
 				
-			return _pkgResolver;
+			return _assetResolver;
 		}
-		public		static			AssetRefResolver	GetResolver			( String refAddress )	
-		{
-			if( String.IsNullOrEmpty( refAddress ) || refAddress.Length < 3 )
-				return null;
-				
-			var resolverId = refAddress[3] == ':' ? refAddress.AsSpan(0, 3) : refAddress.AsSpan(0, 4);
-
-			#if UNITY_EDITOR
-			if( _registeredResolvers.Count == 0 )
-				Editor.RegisterResolversInEditor( );
-			#endif
-			
-			foreach ( var resolver in _registeredResolvers )
-			{
-				if( resolverId.CompareTo(resolver.Item1.AsSpan(), StringComparison.Ordinal) == 0 )
-					return resolver.Item2;
-			}
-
-			//Debug.LogError		( $"[AssetRef] - GetManager: RefResolver id {resolverId.ToString( )} Unregistered" );
-			return _defaultResolver;
-		}
-		public		static			void				RegisterResolver	( AssetRefResolver resolver )
-		{
-			Debug.Log			( $"[AssetRef] - RegisterResolver: {resolver}" );
-			_registeredResolvers.Add( (resolver.Prefix, resolver)  );
-		}
-
+		
 		public static class Editor
 		{
-			public static AssetRefResolver GetResolverForType( Type type, String path )
-			{
-				if( _registeredResolvers.Count == 0 || _defaultResolver == null )
-					RegisterResolversInEditor( );
-				
-				foreach ( var resolver in _registeredResolvers )
-				{
-					if( resolver.Item2.CanHandleAsset( type, path ) )
-						return resolver.Item2;
-				}
-				
-				return _defaultResolver;
-			}
+			// public static AssetRefResolver GetResolverForType( Type type, String path )
+			// {
+			// 	if( _registeredResolvers.Count == 0 || _defaultResolver == null )
+			// 		RegisterResolversInEditor( );
+			// 	
+			// 	foreach ( var resolver in _registeredResolvers )
+			// 	{
+			// 		if( resolver.Item2.CanHandleAsset( type, path ) )
+			// 			return resolver.Item2;
+			// 	}
+			// 	
+			// 	return _defaultResolver;
+			// }
 
 			internal static void RegisterResolversInEditor()
 			{
 				#if UNITY_EDITOR
 				_sceneResolver = new ScnResolver( );
-				_pkgResolver = new PkgResolver( );
-				
-				foreach ( var resolverType in UnityEditor.TypeCache.GetTypesDerivedFrom(typeof(AssetRefResolver)) )
-				{
-					if( resolverType == typeof(PkgResolver) )
-					{
-						_defaultResolver = (AssetRefResolver)Activator.CreateInstance( resolverType );
-						continue;
-					}
-					
-					var resolver = (AssetRefResolver)Activator.CreateInstance( resolverType );
-					_registeredResolvers.Add( (resolver.Prefix, resolver) );
-				}
-				
-				_registeredResolvers.Add( (_defaultResolver.Prefix, _defaultResolver) );
-				
+				_assetResolver = new AssetResolver( );
 				#endif
 			}
 		}

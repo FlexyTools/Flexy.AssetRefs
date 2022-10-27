@@ -47,7 +47,7 @@ namespace Flexy.AssetRefs.Editor
 			//if( EditorGUI.EndChangeCheck( ) )
 			if( newobj != null )
 			{
-				var resolver	= AssetRef.Editor.GetResolverForType( newobj.GetType(), AssetDatabase.GetAssetPath(newobj) );
+				var resolver	= AssetRef.GetPkgResolver( );
 				var path		= resolver.EditorCreateAssetPath( newobj );
 				
 				addressProp.stringValue = path;

@@ -5,9 +5,9 @@ using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs
 {
-	public class PkgResolver : AssetRefResolver
+	public class AssetResolver : AssetRefResolver
 	{
-		public override String		Prefix => "pkg";
+		public override String		Prefix => "ast";
 
 		public override Boolean		CanHandleAsset	( Type type, String path )	
 		{
@@ -29,10 +29,10 @@ namespace Flexy.AssetRefs
 		public override String		EditorCreateAssetPath(Object asset)
 		{
 			if( UnityEditor.AssetDatabase.IsMainAsset( asset ) && UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out long instanceId ) )
-				return $"pkg:{guid}";	
+				return $"ast:{guid}";	
 			
 			if( UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
-				return $"pkg:{guid2}:{instanceId2}";	
+				return $"ast:{guid2}:{instanceId2}";	
 			
 			return "";
 		}

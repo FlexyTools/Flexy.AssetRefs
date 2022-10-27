@@ -1,5 +1,6 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
+using Flexy.JsonX;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = System.Object;
@@ -7,7 +8,8 @@ using Object = System.Object;
 namespace Flexy.AssetRefs
 {
 	[Serializable]
-	public struct AssetRef_Scene
+	[JsonX(isInline:true)]
+	public struct AssetRef_Scene : ISerializeAsString
 	{
 		public AssetRef_Scene ( String refAddress ) { _refAddress = refAddress; }
 		
@@ -19,18 +21,27 @@ namespace Flexy.AssetRefs
 
 		public	async	UniTask			DownloadDependencies( IProgress<Single> progress = null )	
 		{
-			var resolver	= AssetRef.GetResolver( _refAddress );
+			var resolver	= AssetRef.GetSceneResolver( );
 			await resolver.DownloadDependencies( _refAddress, progress );
 		}
 		public	async	UniTask<Int32>	GetDownloadSize		( )										
 		{
-			var resolver	= AssetRef.GetResolver( _refAddress );
+			var resolver	= AssetRef.GetSceneResolver( );
 			return await resolver.GetDownloadSize( _refAddress );
 		}
 		
 		public 			UniTask<Scene> 	LoadSceneAsync		( IProgress<Single> progress = null )	
 		{
 			return AssetRef.GetSceneResolver( ).LoadSceneAsync( _refAddress, progress );
+		}
+		
+		public override	String	ToString	( )				
+		{
+			return _refAddress;
+		}
+		public			void	FromString	( String data )	
+		{
+			_refAddress = data;
 		}
 	}
 }
