@@ -48,7 +48,7 @@ namespace Flexy.AssetRefs.Editor
 			if( newobj != null )
 			{
 				var resolver	= AssetRef.GetAssetResolver( );
-				var path		= resolver.EditorCreateAssetPath( newobj );
+				var path		= resolver.EditorCreateAssetAddress( newobj );
 				
 				addressProp.stringValue = path;
 				_assets[property.propertyPath] = newobj;

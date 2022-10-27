@@ -1,6 +1,8 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
+using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs.Editor
 {
@@ -27,21 +29,30 @@ namespace Flexy.AssetRefs.Editor
 			//Debug.Log			( $"[AssetRefDrawer] - OnGUI: {type}" );
 			
 			if( _asset == null )
-				_asset = AssetRef.GetSceneResolver( ).EditorLoadAsset( refAddress );
+				_asset = EditorLoadAsset( refAddress );
 			
 			var newobj		= EditorGUI.ObjectField( position, label, _asset, type, false );
 
 			if( newobj != null )
 			{
-				var resolver	= AssetRef.GetSceneResolver( );
-				var path		= resolver.EditorCreateAssetPath( newobj );
-				addressProp.stringValue = path;
+				addressProp.stringValue = AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( newobj ) );
 				_asset = newobj;
 			}
 			
 			// Validate Reference
 			
 			Profiler.EndSample( );
+		}
+
+		private					Object			EditorLoadAsset			( String address )		
+		{
+			if( string.IsNullOrEmpty( address ) )
+				return null;
+			
+			var guid = address;
+			var path = AssetDatabase.GUIDToAssetPath( guid );
+			
+			return AssetDatabase.LoadAssetAtPath<Object>( path );
 		}
 	}
 }

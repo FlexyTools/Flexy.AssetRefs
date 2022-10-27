@@ -6,70 +6,80 @@ namespace Flexy.AssetRefs
 {
 	public class AssetResolver : AssetRefResolver
 	{
-		public override Boolean		CanHandleAsset	( Type type, String path )	
+		public override async UniTask<T>	LoadAssetAsync<T>		( String address, IProgress<Single> progress )	
 		{
-			return true;
-		}
-
-		#if UNITY_EDITOR
-		public override Object		EditorLoadAsset	( String address, Type type )
-		{
-			if ( String.IsNullOrEmpty( address ) || String.Equals( address, "null", StringComparison.Ordinal ) )
-				return null;
-
-			var guid = address.AsSpan( )[..32].ToString( );
-			var path = UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
+			if ( AssetRef.AllowDirectAccessInEditor )
+				return (T)EditorLoadAsset( address, typeof(T) );
 			
-			return UnityEditor.AssetDatabase.LoadAssetAtPath( path, type );
+			var asset	= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{address}" );
+			return (T)asset.Ref;
 		}
-
-		public override String		EditorCreateAssetPath(Object asset)
-		{
-			if( UnityEditor.AssetDatabase.IsMainAsset( asset ) && UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out long instanceId ) )
-				return $"{guid}";	
-			
-			if( UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
-				return $"{guid2}:{instanceId2}";	
-			
-			return "";
-		}
-		#endif
-
-		public override async UniTask<T> LoadAssetAsync<T>(String address, IProgress<Single> progress)
-		{
-			#if UNITY_EDITOR
-			return (T)EditorLoadAsset( address, typeof(T) );
-			#else
-			var guid	= address.AsSpan( )[..32].ToString( );
-			var asset	= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{guid}" );
-
-			return asset.Ref;
-			#endif
-		}
-
-		public override T			LoadAssetSync<T>(String address)
+		public override T					LoadAssetSync<T>		( String address )								
 		{
 			if( address[3] == ':' )
 				address = address[4..];
 			
-			#if UNITY_EDITOR
-			return (T)EditorLoadAsset( address, typeof(T) );
-			#else
-			var guid	= address.AsSpan( )[..32].ToString( );
-			var asset	= UnityEngine.Resources.Load<ResourceRef>( $"AssetRefs/{guid}" );
+			if( AssetRef.AllowDirectAccessInEditor  )
+				return (T)EditorLoadAsset( address, typeof(T) );
 			
-			return asset.Ref;
-			#endif
+			var asset	= UnityEngine.Resources.Load<ResourceRef>( $"AssetRefs/{address}" );
+			return (T)asset.Ref;
 		}
-
-		public override UniTask			DownloadDependencies(String address, IProgress<Single> progress)
+		public override UniTask				DownloadDependencies	( String address, IProgress<Single> progress )	
 		{
 			return UniTask.CompletedTask;
 		}
-
-		public override UniTask<Int32>	GetDownloadSize(String address)
+		public override UniTask<Int32>		GetDownloadSize			( String address )								
 		{
 			return UniTask.FromResult(0);
+		}
+		
+		public override Object				EditorLoadAsset			( String address, Type type )					
+		{
+			#if UNITY_EDITOR
+			if ( String.IsNullOrEmpty( address ) || String.Equals( address, "null", StringComparison.Ordinal ) )
+				return null;
+
+			if( address.Length == 32 ) //pure giud
+			{
+				var path = UnityEditor.AssetDatabase.GUIDToAssetPath( address );
+			
+				return UnityEditor.AssetDatabase.LoadAssetAtPath( path, type );
+			}
+			else
+			{
+				var guid		= address.AsSpan( )[..32].ToString( );
+				var instanceId	= Int64.Parse( address.AsSpan( )[33..] ); 
+				var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
+				
+				foreach ( var asset in UnityEditor.AssetDatabase.LoadAllAssetRepresentationsAtPath( path ) )
+				{
+					if( UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
+					{
+						if( instanceId == instanceId2 )
+							return asset;
+					}
+				}
+				
+				
+			}
+			#endif
+			
+			return null;
+		}
+		public override String				EditorCreateAssetAddress( Object asset )								
+		{
+			#if UNITY_EDITOR
+			
+			if( UnityEditor.AssetDatabase.IsMainAsset( asset ) && UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out long instanceId ) )
+				return $"{guid}";	
+			
+			if( UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
+				return $"{guid2}_{instanceId2}";
+			
+			#endif
+			
+			return "";
 		}
 		
 		// public static Object	LoadAssetBypassBungles				( String assetGuid, String subObjectName )		

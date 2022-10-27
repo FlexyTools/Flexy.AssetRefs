@@ -103,6 +103,7 @@ namespace Flexy.AssetRefs
 		}
 	}
 
+	
 	public static class AssetRef
 	{
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -111,6 +112,16 @@ namespace Flexy.AssetRefs
 			_sceneResolver		= new SceneResolver( );
 			_assetResolver		= new AssetResolver( );
 		}
+	
+		public const	Boolean		IsEditor = 
+			#if UNITY_EDITOR
+			true;
+			#else
+			false;
+			#endif
+		
+		public		static			Boolean				RuntimeBehaviorEnabled;
+		public		static			Boolean				AllowDirectAccessInEditor => IsEditor && !RuntimeBehaviorEnabled;
 		
 		private		static			SceneResolver		_sceneResolver;
 		private		static			AssetResolver		_assetResolver;
@@ -139,6 +150,13 @@ namespace Flexy.AssetRefs
 				_assetResolver = new AssetResolver( );
 				#endif
 			}
+			
+			#if UNITY_EDITOR
+			[UnityEditor.MenuItem("Tools/Flexy/AssetRefs/Enable Runtime Behavior")]			public static void		EnableRuntimeBehavior			( )	{ RuntimeBehaviorEnabled = true; }
+			[UnityEditor.MenuItem("Tools/Flexy/AssetRefs/Disable Runtime Behavior")]		public static void		DisableRuntimeBehavior			( )	{ RuntimeBehaviorEnabled = false; }
+			[UnityEditor.MenuItem("Tools/Flexy/AssetRefs/Enable Runtime Behavior", true)]	public static Boolean	EnableRuntimeBehaviorValidate	( )	{ return !RuntimeBehaviorEnabled; }
+			[UnityEditor.MenuItem("Tools/Flexy/AssetRefs/Disable Runtime Behavior", true)]	public static Boolean	DisableRuntimeBehaviorValidate	( )	{ return RuntimeBehaviorEnabled; }
+			#endif
 		}
 	}
 }

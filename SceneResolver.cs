@@ -1,9 +1,7 @@
 ﻿using System;
-using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs
 {
@@ -29,19 +27,18 @@ namespace Flexy.AssetRefs
 		public virtual async	UniTask<Scene>	LoadSceneAsync			( AssetRef_Scene sceneRef, IProgress<Single> progress )	
 		{
 			var awaitable	= default(AsyncOperation);
-			
-			
-			
-			#if UNITY_EDITOR
 			var address		= sceneRef.Address;
-			if( address[3] == ':' )
-				address = address[4..];
-			var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( address );
-			awaitable		= UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode( path, new LoadSceneParameters { loadSceneMode = LoadSceneMode.Additive } );
-			#else
-			var asset		= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{address}" );
-			awaitable		= SceneManager.LoadSceneAsync( asset.Name, LoadSceneMode.Additive );
-			#endif
+			
+			if( AssetRef.AllowDirectAccessInEditor )
+			{
+				var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( address );
+				awaitable		= UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode( path, new LoadSceneParameters { loadSceneMode = LoadSceneMode.Additive } );
+			}
+			else
+			{
+				var asset		= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{address}" );
+				awaitable		= SceneManager.LoadSceneAsync( asset.Name, LoadSceneMode.Additive );
+			}
 			
 			var scene		= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
 
@@ -52,24 +49,5 @@ namespace Flexy.AssetRefs
 			
 			return scene;
 		}
-		
-		#if UNITY_EDITOR
-		public virtual			Object			EditorLoadAsset			( String address )		
-		{
-			if( string.IsNullOrEmpty( address ) )
-				return null;
-			
-			var guid = address.AsSpan( )[..32].ToString( );
-			var path = UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
-			
-			return UnityEditor.AssetDatabase.LoadAssetAtPath<Object>( path );
-		}
-		public virtual			String			EditorCreateAssetPath	( Object asset )		
-		{
-			var guid	= UnityEditor.AssetDatabase.AssetPathToGUID( UnityEditor.AssetDatabase.GetAssetPath( asset ) );
-			
-			return $"{guid}";
-		}
-		#endif
 	}
 }

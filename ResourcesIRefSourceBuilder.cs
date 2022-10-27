@@ -22,6 +22,12 @@ namespace Flexy.AssetRefs
 		{
 			Debug.Log			( $"[ResourcesIRefSourceBuilder] - OnPreprocessBuild: PreProcessBuild" );
 			
+			GenerateAssetRefAssets( );
+		}
+		
+		[MenuItem("Tools/Flexy/AssetRefs/Generate AssetRef Assets")]
+		public static void GenerateAssetRefAssets ( )
+		{
 			static List<ResourcesIRefSourceBuilder> GetAllBuilders()
 	        {
 	            var getAssets = AssetDatabase.FindAssets( $"t:{typeof(ResourcesIRefSourceBuilder)}" ).Select( guid => (ResourcesIRefSourceBuilder)AssetDatabase.LoadAssetAtPath( AssetDatabase.GUIDToAssetPath( guid ), typeof(ResourcesIRefSourceBuilder) ) );
@@ -34,7 +40,7 @@ namespace Flexy.AssetRefs
 			foreach ( var builder in allAssets )
 				builder.CreateResourcesAssetForeachAssetRefSource();
 		}
-
+		
 		[ContextMenu("Create Resources Refs")]
 		private void CreateResourcesAssetForeachAssetRefSource( )
 		{
@@ -42,35 +48,44 @@ namespace Flexy.AssetRefs
 			
 			Directory.CreateDirectory( "Assets/Resources/AssetRefs" );
 			
-			foreach ( var r in Resources )
+			
+			try						
 			{
-				if ( !r )
+				AssetDatabase.StartAssetEditing( );
+			
+				foreach ( var r in Resources )
 				{
-					Debug.LogError( $"[ResourcesIRefSourceBuilder] - CreateResourcesAssetForeachAssetRefSource: resource is null in {this.name} object. Skipped", this );
-					continue;
-				}
+					if ( !r )
+					{
+						Debug.LogError( $"[ResourcesIRefSourceBuilder] - CreateResourcesAssetForeachAssetRefSource: resource is null in {this.name} object. Skipped", this );
+						continue;
+					}
 
-				if( r is IAssetRefsSource ars )
-				{
-					foreach ( var ca in ars.CollectAssets( ) )
+					if( r is IAssetRefsSource ars )
+					{
+						foreach ( var ca in ars.CollectAssets( ) )
+						{
+							var rref = CreateInstance<ResourceRef>( );
+							rref.Ref = ca;
+							rref.Name = ca.name;
+							
+							var assetAddress	= AssetRef.GetAssetResolver().EditorCreateAssetAddress( ca );
+							AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress}.asset" );	
+						}
+					}
+					else
 					{
 						var rref = CreateInstance<ResourceRef>( );
-						rref.Ref = ca;
-						rref.Name = ca.name;
-						var guid = AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( ca ) );
-						AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{guid}.asset" );	
+						rref.Ref = r;
+						var assetAddress	= AssetRef.GetAssetResolver().EditorCreateAssetAddress( r );
+						AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress}.asset" );
 					}
 				}
-				else
-				{
-					var rref = CreateInstance<ResourceRef>( );
-					rref.Ref = r;
-					var guid = AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( r ) );
-					AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{guid}.asset" );
-				}
 			}
-			
-			
+			finally
+			{
+				AssetDatabase.StopAssetEditing( );
+			}
 		}
 	}
 	
@@ -82,7 +97,7 @@ namespace Flexy.AssetRefs
 			CreateDefaultSceneRefs( );
 		}
 		
-		[MenuItem("Tools/Flexy/AssetRefs/CreateDefaultSceneRefs")]
+		[MenuItem("Tools/Flexy/AssetRefs/Create Default SceneRefs")]
 		public static void CreateDefaultSceneRefs ( )
 		{
 			Directory.CreateDirectory( "Assets/Resources/AssetRefs" );
