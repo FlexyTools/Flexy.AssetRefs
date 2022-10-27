@@ -1,14 +1,11 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs
 {
 	public class AssetResolver : AssetRefResolver
 	{
-		public override String		Prefix => "ast";
-
 		public override Boolean		CanHandleAsset	( Type type, String path )	
 		{
 			return true;
@@ -20,7 +17,7 @@ namespace Flexy.AssetRefs
 			if ( String.IsNullOrEmpty( address ) || String.Equals( address, "null", StringComparison.Ordinal ) )
 				return null;
 
-			var guid = address.AsSpan( )[4..36].ToString( );
+			var guid = address.AsSpan( )[..32].ToString( );
 			var path = UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
 			
 			return UnityEditor.AssetDatabase.LoadAssetAtPath( path, type );
@@ -29,10 +26,10 @@ namespace Flexy.AssetRefs
 		public override String		EditorCreateAssetPath(Object asset)
 		{
 			if( UnityEditor.AssetDatabase.IsMainAsset( asset ) && UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out long instanceId ) )
-				return $"ast:{guid}";	
+				return $"{guid}";	
 			
 			if( UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
-				return $"ast:{guid2}:{instanceId2}";	
+				return $"{guid2}:{instanceId2}";	
 			
 			return "";
 		}
@@ -43,7 +40,7 @@ namespace Flexy.AssetRefs
 			#if UNITY_EDITOR
 			return (T)EditorLoadAsset( address, typeof(T) );
 			#else
-			var guid	= address.AsSpan( )[4..36].ToString( );
+			var guid	= address.AsSpan( )[..32].ToString( );
 			var asset	= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{guid}" );
 
 			return asset.Ref;
@@ -55,7 +52,7 @@ namespace Flexy.AssetRefs
 			#if UNITY_EDITOR
 			return (T)EditorLoadAsset( address, typeof(T) );
 			#else
-			var guid	= address.AsSpan( )[4..36].ToString( );
+			var guid	= address.AsSpan( )[..32].ToString( );
 			var asset	= UnityEngine.Resources.Load<ResourceRef>( $"AssetRefs/{guid}" );
 			
 			return asset.Ref;
@@ -64,12 +61,12 @@ namespace Flexy.AssetRefs
 
 		public override UniTask			DownloadDependencies(String address, IProgress<Single> progress)
 		{
-			throw new NotImplementedException();
+			return UniTask.CompletedTask;
 		}
 
 		public override UniTask<Int32>	GetDownloadSize(String address)
 		{
-			throw new NotImplementedException();
+			return UniTask.FromResult(0);
 		}
 		
 		// public static Object	LoadAssetBypassBungles				( String assetGuid, String subObjectName )		

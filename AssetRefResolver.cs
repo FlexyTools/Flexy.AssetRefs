@@ -6,8 +6,6 @@ namespace Flexy.AssetRefs
 {
 	public abstract class AssetRefResolver
 	{
-		public abstract		String			Prefix					{ get ; }
-		
 		public abstract		UniTask<T>		LoadAssetAsync<T>		( String address, IProgress<Single> progress ) where T:UnityEngine.Object;
 		public abstract		T				LoadAssetSync<T>		( String address ) where T:UnityEngine.Object;
 		

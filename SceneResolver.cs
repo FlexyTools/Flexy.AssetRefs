@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs
 {
-	public class ScnResolver
+	public class SceneResolver
 	{
 		[RuntimeInitializeOnLoadMethod]
 		private static void Init( )
@@ -15,38 +15,34 @@ namespace Flexy.AssetRefs
 			SceneLoader = null;
 		}
 		
-		public static	Func<String, IProgress<Single>, UniTask<Scene>> SceneLoader;
-		
-		public					String			Prefix					=> "scn";
+		public static	Func<AsyncOperation, IProgress<Single>, UniTask<Scene>> SceneLoader;
 
 		public virtual			UniTask			DownloadDependencies	( String address, IProgress<Single> progress )	
 		{
-			throw new NotImplementedException();
+			return UniTask.CompletedTask;
 		}
 		public virtual			UniTask<Int32>	GetDownloadSize			( String address )								
 		{
-			throw new NotImplementedException();
+			return UniTask.FromResult(0);
 		}
 		
-		public virtual async	UniTask<Scene>	LoadSceneAsync			( String address, IProgress<Single> progress )	
+		public virtual async	UniTask<Scene>	LoadSceneAsync			( AssetRef_Scene sceneRef, IProgress<Single> progress )	
 		{
-			if( SceneLoader != null )
-				return await SceneLoader( address, progress );
-			
 			var awaitable	= default(AsyncOperation);
 			
 			#if UNITY_EDITOR
-			var guid		= address.AsSpan( )[4..36].ToString( );
-			var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
-			
+			var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( sceneRef.Address );
 			awaitable		= UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode( path, new LoadSceneParameters { loadSceneMode = LoadSceneMode.Additive } );
 			#else
-			var sceneName	= address.AsSpan( )[37..].ToString( );
-			awaitable		= SceneManager.LoadSceneAsync( sceneName, LoadSceneMode.Additive );
+			var asset		= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{address}" );
+			awaitable		= SceneManager.LoadSceneAsync( asset.Name, LoadSceneMode.Additive );
 			#endif
-
+			
 			var scene		= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
-		
+
+			if( SceneLoader != null )
+				return await SceneLoader( awaitable, progress );
+			
 			await awaitable;
 			
 			return scene;
@@ -58,7 +54,7 @@ namespace Flexy.AssetRefs
 			if( string.IsNullOrEmpty( address ) )
 				return null;
 			
-			var guid = address.AsSpan( )[4..36].ToString( );
+			var guid = address.AsSpan( )[..32].ToString( );
 			var path = UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
 			
 			return UnityEditor.AssetDatabase.LoadAssetAtPath<Object>( path );
@@ -66,9 +62,8 @@ namespace Flexy.AssetRefs
 		public virtual			String			EditorCreateAssetPath	( Object asset )		
 		{
 			var guid	= UnityEditor.AssetDatabase.AssetPathToGUID( UnityEditor.AssetDatabase.GetAssetPath( asset ) );
-			var mapName	= Path.GetFileNameWithoutExtension( UnityEditor.AssetDatabase.GetAssetPath( asset ) );
-				
-			return $"scn:{guid}:{mapName}";
+			
+			return $"{guid}";
 		}
 		#endif
 	}

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Flexy.JsonX;
 using UnityEngine;
@@ -8,32 +7,31 @@ using Object = UnityEngine.Object;
 namespace Flexy.AssetRefs 
 {
 	[Serializable]
-	public struct AssetRef<T> : ISerializeAsString where T:UnityEngine.Object
+	public struct AssetRef<T> : ISerializeAsString where T: Object
 	{
 		public	AssetRef ( String refAddress )	
 		{
 			_refAddress = refAddress;
 		}
 		
-		// address form is 3 or 4 symbols of global manager id that will handle reference then ':' then string part manager can understand
-		[SerializeField] String			_refAddress;
+		[SerializeField] String			_refAddress; //asset guid optionally with subasset id
 		
 		public			Boolean			IsNone				=> String.IsNullOrEmpty( _refAddress );
 		
 		public	async	UniTask			DownloadDependencies( IProgress<Single> progress = null )	
 		{
-			var resolver	= AssetRef.GetPkgResolver( );
+			var resolver	= AssetRef.GetAssetResolver( );
 			await resolver.DownloadDependencies( _refAddress, progress );
 		}
 		public	async	UniTask<Int32>	GetDownloadSize		( )										
 		{
-			var resolver	= AssetRef.GetPkgResolver( );
+			var resolver	= AssetRef.GetAssetResolver( );
 			return await resolver.GetDownloadSize( _refAddress );
 		}
 		
 		public			T				LoadAssetSync		( )										
 		{
-			var resolver	= AssetRef.GetPkgResolver( );
+			var resolver	= AssetRef.GetAssetResolver( );
 			var asset		= resolver.LoadAssetSync<T>( _refAddress );
 			
 			if( asset is T tr )
@@ -47,7 +45,7 @@ namespace Flexy.AssetRefs
 		
 		public async	UniTask<T> 		LoadAssetAsync		( IProgress<Single> progress = null )	
 		{
-			var resolver	= AssetRef.GetPkgResolver( );
+			var resolver	= AssetRef.GetAssetResolver( );
 			var asset		= await resolver.LoadAssetAsync<T>( _refAddress, progress );
 			
 			if( asset is T tr )
@@ -96,6 +94,11 @@ namespace Flexy.AssetRefs
 		}
 		public			void	FromString	( String data )	
 		{
+			#if UNITY_EDITOR
+			if( data.Length >= 4 && data[3] == ':' )
+				data = data[4..];
+			#endif
+			
 			_refAddress = data;
 		}
 	}
@@ -105,21 +108,21 @@ namespace Flexy.AssetRefs
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void Init( )
 		{
-			_sceneResolver		= new ScnResolver( );
+			_sceneResolver		= new SceneResolver( );
 			_assetResolver		= new AssetResolver( );
 		}
 		
-		private		static			ScnResolver								_sceneResolver;
-		private		static			AssetResolver							_assetResolver;
+		private		static			SceneResolver		_sceneResolver;
+		private		static			AssetResolver		_assetResolver;
 		
-		public		static			ScnResolver			GetSceneResolver	( )						
+		public		static			SceneResolver		GetSceneResolver	( )		
 		{
 			if( _sceneResolver == null )
 				Editor.RegisterResolversInEditor( );
 				
 			return _sceneResolver;
 		}
-		public		static			AssetResolver		GetPkgResolver		( )						
+		public		static			AssetResolver		GetAssetResolver	( )		
 		{
 			if( _assetResolver == null )
 				Editor.RegisterResolversInEditor( );
@@ -129,24 +132,10 @@ namespace Flexy.AssetRefs
 		
 		public static class Editor
 		{
-			// public static AssetRefResolver GetResolverForType( Type type, String path )
-			// {
-			// 	if( _registeredResolvers.Count == 0 || _defaultResolver == null )
-			// 		RegisterResolversInEditor( );
-			// 	
-			// 	foreach ( var resolver in _registeredResolvers )
-			// 	{
-			// 		if( resolver.Item2.CanHandleAsset( type, path ) )
-			// 			return resolver.Item2;
-			// 	}
-			// 	
-			// 	return _defaultResolver;
-			// }
-
 			internal static void RegisterResolversInEditor()
 			{
 				#if UNITY_EDITOR
-				_sceneResolver = new ScnResolver( );
+				_sceneResolver = new SceneResolver( );
 				_assetResolver = new AssetResolver( );
 				#endif
 			}

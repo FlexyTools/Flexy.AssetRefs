@@ -31,7 +31,7 @@ namespace Flexy.AssetRefs.Editor
 			var type			= GetFieldType( fieldInfo );
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
-			 	_assets[property.propertyPath] = AssetRef.GetPkgResolver( )?.EditorLoadAsset( refAddress, type );
+			 	_assets[property.propertyPath] = AssetRef.GetAssetResolver( )?.EditorLoadAsset( refAddress, type );
 			
 			_assets.TryGetValue( property.propertyPath, out var asset );
 
@@ -47,7 +47,7 @@ namespace Flexy.AssetRefs.Editor
 			//if( EditorGUI.EndChangeCheck( ) )
 			if( newobj != null )
 			{
-				var resolver	= AssetRef.GetPkgResolver( );
+				var resolver	= AssetRef.GetAssetResolver( );
 				var path		= resolver.EditorCreateAssetPath( newobj );
 				
 				addressProp.stringValue = path;

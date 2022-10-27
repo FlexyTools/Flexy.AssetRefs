@@ -56,6 +56,7 @@ namespace Flexy.AssetRefs
 					{
 						var rref = CreateInstance<ResourceRef>( );
 						rref.Ref = ca;
+						rref.Name = ca.name;
 						var guid = AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( ca ) );
 						AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{guid}.asset" );	
 					}
@@ -70,6 +71,33 @@ namespace Flexy.AssetRefs
 			}
 			
 			
+		}
+	}
+	
+	public class ResourcesDefaultScenesIRefSourceBuilder : IPreprocessBuildWithReport
+	{
+		public Int32 callbackOrder { get; }
+		public void OnPreprocessBuild(BuildReport report)
+		{
+			CreateDefaultSceneRefs( );
+		}
+		
+		[MenuItem("Tools/Flexy/AssetRefs/CreateDefaultSceneRefs")]
+		public static void CreateDefaultSceneRefs ( )
+		{
+			Directory.CreateDirectory( "Assets/Resources/AssetRefs" );
+			
+			foreach ( var s in EditorBuildSettings.scenes )
+			{
+				if ( !s.enabled )
+					continue;
+
+				var rref = ResourceRef.CreateInstance<ResourceRef>( );
+				rref.Ref = null;
+				rref.Name = Path.GetFileNameWithoutExtension( s.path );
+				
+				AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{s.guid}.asset" );
+			}
 		}
 	}
 }
