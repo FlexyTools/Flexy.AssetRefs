@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs
@@ -15,7 +16,10 @@ namespace Flexy.AssetRefs
 	[CreateAssetMenu(fileName = "ResourceRefBuilder", menuName = "Flexy/AssetRefs/ResourcesIRefSourceBuilder")]
 	public class ResourcesIRefSourceBuilder : ScriptableObject, IPreprocessBuildWithReport
 	{
-		public Object[] Resources;
+		public ECatchWay	CatchWay;
+		public String		CatchType;
+		[FormerlySerializedAs("Resources")] 
+		public Object[]		DirectReferences;
 		
 		public Int32 callbackOrder { get; }
 		public void OnPreprocessBuild( BuildReport report )
@@ -48,12 +52,13 @@ namespace Flexy.AssetRefs
 			
 			Directory.CreateDirectory( "Assets/Resources/AssetRefs" );
 			
-			
 			try						
 			{
 				AssetDatabase.StartAssetEditing( );
 			
-				foreach ( var r in Resources )
+				var ress = GrabResources( );
+				
+				foreach ( var r in ress )
 				{
 					if ( !r )
 					{
@@ -87,8 +92,59 @@ namespace Flexy.AssetRefs
 				AssetDatabase.StopAssetEditing( );
 			}
 		}
+
+		private List<Object> GrabResources( )
+		{
+			var list = new List<Object>( ); 
+			
+			if( DirectReferences != null )
+				list.AddRange( DirectReferences );
+			
+			if( CatchWay != 0 )
+			{
+				var thisPath	= Path.GetDirectoryName( AssetDatabase.GetAssetPath( this ) );
+				var filter		= "";
+				
+				if( !String.IsNullOrWhiteSpace( CatchType ) )
+					filter = $"t:{CatchType.Trim()}";
+				
+				var assetGuids	= AssetDatabase.FindAssets( filter, new []{ thisPath } );
+				
+				foreach ( var assetGuid in assetGuids )
+				{
+					var path	= AssetDatabase.GUIDToAssetPath( assetGuid );
+					
+					if( filter == "" )
+					{
+						var asset  = AssetDatabase.LoadMainAssetAtPath( path );
+						list.Add( asset );
+					}
+					else
+					{
+						var assets  = AssetDatabase.LoadAllAssetsAtPath( path );
+						
+						foreach ( var asset in assets )
+						{
+							if( asset.GetType( ).Name.Contains( CatchType ) )
+							{
+								list.Add( asset );
+							}
+						}
+					}
+				}
+			}
+			
+			return list;
+		}
 	}
-	
+
+	public enum ECatchWay : Byte
+	{
+		OnlyDirectReferences		= 0,
+		//AddCurrentDirAssets		= 1,
+		AddCurrentAndSubDirAssets	= 2,
+	}
+
 	public class ResourcesDefaultScenesIRefSourceBuilder : IPreprocessBuildWithReport
 	{
 		public Int32 callbackOrder { get; }
