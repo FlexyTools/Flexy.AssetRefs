@@ -31,8 +31,10 @@ namespace Flexy.AssetRefs
 			
 			if( AssetRef.AllowDirectAccessInEditor )
 			{
+				#if UNITY_EDITOR
 				var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( address );
 				awaitable		= UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode( path, new LoadSceneParameters { loadSceneMode = LoadSceneMode.Additive } );
+				#endif
 			}
 			else
 			{
