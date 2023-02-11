@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using Flexy.JsonXSpace;
 using UnityEngine;
 using Object = UnityEngine.Object;
+//using Hash128 = UnityEngine.Hash128;
 
 namespace Flexy.AssetRefs 
 {
@@ -15,6 +16,8 @@ namespace Flexy.AssetRefs
 		}
 		
 		[SerializeField] String			_refAddress; //asset guid optionally with subasset id
+		// [SerializeField] Hash128		_refAddress;
+		// [SerializeField] Int64			_internalId;
 		
 		public			Boolean			IsNone				=> String.IsNullOrEmpty( _refAddress );
 		
