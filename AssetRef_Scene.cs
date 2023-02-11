@@ -6,6 +6,8 @@ using UnityEngine.SceneManagement;
 
 namespace Flexy.AssetRefs
 {
+	// See there to adjust the interface: https://github.com/mygamedevtools/scene-loader?
+	
 	[Serializable]
 	public struct AssetRef_Scene : ISerializeAsString
 	{
