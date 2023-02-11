@@ -52,7 +52,7 @@ namespace Flexy.AssetRefs
 				var instanceId	= Int64.Parse( address.AsSpan( )[33..] ); 
 				var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( guid );
 				
-				foreach ( var asset in UnityEditor.AssetDatabase.LoadAllAssetRepresentationsAtPath( path ) )
+				foreach ( var asset in UnityEditor.AssetDatabase.LoadAllAssetsAtPath( path ) )
 				{
 					if( UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
 					{
