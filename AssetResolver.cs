@@ -54,7 +54,7 @@ namespace Flexy.AssetRefs
 				
 				foreach ( var asset in UnityEditor.AssetDatabase.LoadAllAssetsAtPath( path ) )
 				{
-					if( UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
+					if( asset && UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
 					{
 						if( instanceId == instanceId2 )
 							return asset;
