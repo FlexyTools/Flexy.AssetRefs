@@ -15,27 +15,24 @@ namespace Flexy.AssetRefs.Editor
 	{
 		const Single _imageHeight = 60;
 		
-		private Dictionary<String, Object> _assets = new Dictionary<String, Object>( );
+		// used to store cached objects of current SerializedObject our drawer part of
+		private Dictionary<String, Object> _assets = new( );
 		
 		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
 		{
 			Profiler.BeginSample( "AssetRefDrawer" );
 			
-			// var arr			= fieldInfo.GetCustomAttributes( typeof(AssetTypeAttribute), true );
-			// var attr			= (AssetTypeAttribute)( attribute ?? ( arr.Length > 0 ? arr[0] : null ) );
-
-			
-			var addressProp		= property.FindPropertyRelative( "_refAddress" );
-			var refAddress		= addressProp.stringValue;
+			var uidProp			= property.FindPropertyRelative( "_uid" );
+			var subIdProp		= property.FindPropertyRelative( "_subId" );
 			
 			var type			= GetFieldType( fieldInfo );
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
-			 	_assets[property.propertyPath] = AssetRef.GetAssetResolver( )?.EditorLoadAsset( refAddress, type );
+			 	_assets[property.propertyPath] = AssetRef.GetAssetResolver( )?.EditorLoadAsset( new AssetRef( uidProp.hash128Value, subIdProp.longValue ), type );
 			
 			_assets.TryGetValue( property.propertyPath, out var asset );
 
-			var drawPreview		= DrawPreview( addressProp, fieldInfo ); 
+			var drawPreview		= DrawPreview( uidProp, fieldInfo ); 
 			var isInline		= ArrayTableDrawer.DrawingInTableGUI;
 			
 			if( drawPreview & isInline )
@@ -48,9 +45,11 @@ namespace Flexy.AssetRefs.Editor
 			if( newobj != null )
 			{
 				var resolver	= AssetRef.GetAssetResolver( );
-				var path		= resolver.EditorCreateAssetAddress( newobj );
+				var @ref		= resolver.EditorCreateAssetAddress( newobj );
 				
-				addressProp.stringValue = path;
+				uidProp.hash128Value	= @ref.Uid; 
+				subIdProp.longValue		= @ref.SubId;
+				
 				_assets[property.propertyPath] = newobj;
 				
 				// var validateResult = resolver.Validate( );
@@ -97,8 +96,9 @@ namespace Flexy.AssetRefs.Editor
 			}
 			else
 			{
-				addressProp.stringValue = null;
-				_assets[property.propertyPath] = null;
+				uidProp.hash128Value			= default; 
+				subIdProp.longValue				= default;
+				_assets[property.propertyPath]	= default;
 			}
 			// Validate Reference
 			
@@ -145,20 +145,16 @@ namespace Flexy.AssetRefs.Editor
 			return type;
 		}
 		
-		// private void asasd(SearchItem arg1, Boolean arg2)
-		// {
-		// 	
-		// }
 		public static Boolean DrawPreview( SerializedProperty property, FieldInfo fieldInfo )
 		{
-			var type			= GetFieldType( fieldInfo );
+			var type = GetFieldType( fieldInfo );
 			
-			return type == typeof(Sprite) && property.stringValue is {} str && !String.IsNullOrWhiteSpace( str ); 
+			return type == typeof(Sprite) && property.hash128Value != default; 
 		}
 	 
-	    public override float GetPropertyHeight( SerializedProperty property, GUIContent label )
+	    public override Single GetPropertyHeight( SerializedProperty property, GUIContent label )
 	    {
-	        var addressProp		= property.FindPropertyRelative( "_refAddress" );
+	        var addressProp		= property.FindPropertyRelative( "_uid" );
 			
 			if ( DrawPreview( addressProp, fieldInfo ) && !ArrayTableDrawer.DrawingInTableGUI )
 	        {

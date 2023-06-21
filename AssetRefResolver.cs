@@ -6,13 +6,13 @@ namespace Flexy.AssetRefs
 {
 	public abstract class AssetRefResolver
 	{
-		public abstract		UniTask<T>		LoadAssetAsync<T>		( String address, IProgress<Single> progress ) where T:UnityEngine.Object;
-		public abstract		T				LoadAssetSync<T>		( String address ) where T:UnityEngine.Object;
+		public abstract		UniTask<T>		LoadAssetAsync<T>		( AssetRef address, IProgress<Single> progress ) where T:Object;
+		public abstract		T				LoadAssetSync<T>		( AssetRef address ) where T:Object;
 		
-		public abstract		UniTask			DownloadDependencies	( String address, IProgress<Single> progress );
-		public abstract		UniTask<Int32>	GetDownloadSize			( String address );
+		public abstract		UniTask			DownloadDependencies	( AssetRef address, IProgress<Single> progress );
+		public abstract		UniTask<Int32>	GetDownloadSize			( AssetRef address );
 		
-		public abstract		Object			EditorLoadAsset			( String address, Type type );
-		public abstract		String			EditorCreateAssetAddress( Object asset );
+		public abstract		Object			EditorLoadAsset			( AssetRef address, Type type );
+		public abstract		AssetRef		EditorCreateAssetAddress( Object asset );
 	}
 }
