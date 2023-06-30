@@ -55,7 +55,7 @@ namespace Flexy.AssetRefs
 				
 				foreach ( var asset in AssetDatabase.LoadAllAssetsAtPath( path ) )
 				{
-					if ( !AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out Int64 instanceId ) ) 
+					if ( !asset || !AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out Int64 instanceId ) ) 
 						continue;
 					
 					if( address.SubId == instanceId )
