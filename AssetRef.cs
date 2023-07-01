@@ -21,7 +21,6 @@ namespace Flexy.AssetRefs
 			FromString( refAddress );
 		}
 		
-		//[SerializeField] String			_refAddress; //asset guid optionally with subasset id
 		[SerializeField] Hash128		_uid;
 		[SerializeField] Int64			_subId;
 		
@@ -114,8 +113,28 @@ namespace Flexy.AssetRefs
 			_uid = Guid.Parse( data[..32] ).ToHash(); 
 			_subId = data.Length == 32 ? 0 : Int64.Parse(data[32..]);
 		}
-		
-		public static implicit operator AssetRef			( AssetRef<T> art ) => new( art._uid, art._subId );
+
+		public override Int32			GetHashCode			( )										
+		{
+			return _uid.GetHashCode() ^ _subId.GetHashCode( );
+		}
+		public override Boolean			Equals				( System.Object obj )					
+		{
+			if( obj is not AssetRef<T> ar )
+				return false;
+			
+			return this == ar;
+		}
+		public static	Boolean			operator ==			( AssetRef<T> left, AssetRef<T> right )	
+		{
+			return left._uid == right._uid & left._subId == right._subId;
+		}
+		public static	Boolean			operator !=			( AssetRef<T> left, AssetRef<T> right )	
+		{
+			return !(left == right);
+		}
+
+		public static implicit operator AssetRef			( AssetRef<T> art )	=> new( art._uid, art._subId );
 	}
 	
 	// Not mean to be serializable. Used to pass untyped asset ref around in low level code 
@@ -142,6 +161,26 @@ namespace Flexy.AssetRefs
 			_assetResolver		= new AssetResolver( );
 		}
 	
+		public override Int32			GetHashCode			( )									
+		{
+			return _uid.GetHashCode() ^ _subId.GetHashCode( );
+		}
+		public override Boolean			Equals				( System.Object obj )				
+		{
+			if( obj is not AssetRef ar )
+				return false;
+			
+			return this == ar;
+		}
+		public static	Boolean			operator ==			( AssetRef left, AssetRef right )	
+		{
+			return left._uid == right._uid & left._subId == right._subId;
+		}
+		public static	Boolean			operator !=			( AssetRef left, AssetRef right )	
+		{
+			return !(left == right);
+		}
+		
 		public const	Boolean		IsEditor = 
 			#if UNITY_EDITOR
 			true;
