@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Flexy.Utils.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -9,7 +11,7 @@ namespace Flexy.AssetRefs.Editor
 	[CustomPropertyDrawer(typeof(AssetRef_Scene))]
 	public class AssetRef_SceneDrawer : PropertyDrawer
 	{
-		private Object _asset;
+		private Dictionary<String, Object> _assets = new( );
 		
 		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
 		{
@@ -18,8 +20,8 @@ namespace Flexy.AssetRefs.Editor
 			// var arr			= fieldInfo.GetCustomAttributes( typeof(AssetTypeAttribute), true );
 			// var attr			= (AssetTypeAttribute)( attribute ?? ( arr.Length > 0 ? arr[0] : null ) );
 
-			var addressProp		= property.FindPropertyRelative( "_refAddress" );
-			var refAddress		= addressProp.stringValue;
+			var uidProp			= property.FindPropertyRelative( "_uid" );
+			var refAddress		= uidProp.hash128Value;
 
 			var type			= typeof(SceneAsset);
 			
@@ -28,15 +30,26 @@ namespace Flexy.AssetRefs.Editor
 			
 			//Debug.Log			( $"[AssetRefDrawer] - OnGUI: {type}" );
 			
-			if( _asset == null )
-				_asset = EditorLoadAsset( refAddress );
+			if( !_assets.ContainsKey( property.propertyPath ) )
+				_assets[property.propertyPath] = EditorLoadAsset( refAddress );
 			
-			var newobj		= EditorGUI.ObjectField( position, label, _asset, type, false );
+			_assets.TryGetValue( property.propertyPath, out var asset );
+			
+			if( asset == null && refAddress != default )
+				asset = EditorLoadAsset( refAddress );
+			
+			EditorGUI.BeginChangeCheck( );
+			
+			var newobj		= EditorGUI.ObjectField( position, label, asset, type, false );
 
-			if( newobj != null )
+			if( newobj != asset )
 			{
-				addressProp.stringValue = AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( newobj ) );
-				_asset = newobj;
+				_assets[property.propertyPath] = newobj;
+				
+				if( newobj == null )
+					uidProp.hash128Value = default;
+				else
+					uidProp.hash128Value = new GUID( AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( newobj ) ) ).ToHash( );
 			}
 			
 			// Validate Reference
@@ -44,13 +57,13 @@ namespace Flexy.AssetRefs.Editor
 			Profiler.EndSample( );
 		}
 
-		private					Object			EditorLoadAsset			( String address )		
+		private					Object			EditorLoadAsset			( Hash128 address )		
 		{
-			if( string.IsNullOrEmpty( address ) )
+			if( address == default )
 				return null;
 			
 			var guid = address;
-			var path = AssetDatabase.GUIDToAssetPath( guid );
+			var path = AssetDatabase.GUIDToAssetPath( guid.ToGUID( ) );
 			
 			return AssetDatabase.LoadAssetAtPath<Object>( path );
 		}
