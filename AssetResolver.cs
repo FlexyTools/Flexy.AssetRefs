@@ -59,9 +59,9 @@ namespace Flexy.AssetRefs
 						continue;
 					
 					if( address.SubId == instanceId )
-						return asset;
+							return asset;
+					}
 				}
-			}
 			#endif
 			
 			return null;
