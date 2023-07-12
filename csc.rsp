@@ -1,0 +1,8 @@
+-r:System.Net.Http.dll
+-r:System.Web.dll
+-langversion:10
+#-warn:4
+#-nowarn:234,234,324
+#-warnaserror+
+#-warnaserror:234,234,23,234
+#@file2.rsp  
