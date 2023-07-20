@@ -181,6 +181,26 @@ namespace Flexy.AssetRefs
 			return !(left == right);
 		}
 		
+		public override	String			ToString			( )				
+		{
+			if( _subId != 0 )
+				return $"{_uid}:{_subId}";
+			
+			return _uid == default ? String.Empty : $"{_uid}";
+		}
+		public 			void			FromString			( String data )	
+		{
+			if( String.IsNullOrWhiteSpace( data ) )
+			{
+				this = default;
+			}
+
+			var uid = Guid.Parse( data[..32] ).ToHash(); 
+			var subId = data.Length == 32 ? 0 : Int64.Parse(data[32..]);
+			
+			this = new AssetRef( uid, subId );
+		}
+		
 		public const	Boolean		IsEditor = 
 			#if UNITY_EDITOR
 			true;
@@ -208,7 +228,7 @@ namespace Flexy.AssetRefs
 				
 			return _assetResolver;
 		}
-		
+
 		public static class Editor
 		{
 			internal static void RegisterResolversInEditor( )
