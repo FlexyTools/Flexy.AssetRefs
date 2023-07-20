@@ -75,7 +75,7 @@ namespace Flexy.AssetRefs
 							rref.Name = ca.name;
 							
 							var assetAddress	= AssetRef.GetAssetResolver().EditorCreateAssetAddress( ca );
-							AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress}.asset" );	
+							AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress.ToString().Replace(":", "@")}.asset" );	
 						}
 					}
 					else
@@ -83,7 +83,7 @@ namespace Flexy.AssetRefs
 						var rref = CreateInstance<ResourceRef>( );
 						rref.Ref = r;
 						var assetAddress	= AssetRef.GetAssetResolver().EditorCreateAssetAddress( r );
-						AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress}.asset" );
+						AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress.ToString().Replace(":", "@")}.asset" );
 					}
 				}
 			}

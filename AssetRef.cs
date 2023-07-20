@@ -193,6 +193,7 @@ namespace Flexy.AssetRefs
 			if( String.IsNullOrWhiteSpace( data ) )
 			{
 				this = default;
+				return;
 			}
 
 			var uid = Guid.Parse( data[..32] ).ToHash(); 

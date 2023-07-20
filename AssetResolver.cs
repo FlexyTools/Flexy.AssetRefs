@@ -1,5 +1,6 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 #if UNITY_EDITOR
 using Flexy.Utils.Editor;
@@ -17,7 +18,24 @@ namespace Flexy.AssetRefs
 			if ( AssetRef.AllowDirectAccessInEditor )
 				return (T)EditorLoadAsset( address, typeof(T) );
 			
-			var asset	= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{address}" );
+			var asset	= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{address.ToString().Replace(":", "@")}" );
+			
+			if( !asset )
+			{
+				if( typeof(T).IsSubclassOf(typeof(MonoBehaviour)) )
+				{
+					var croppedAddress = new AssetRef( address.Uid, default );
+					asset	= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{croppedAddress.ToString()}" );
+					
+					if( !asset )
+						Debug.LogError( $"[AssetRef] - Resources Resolver - Loading asset: {address} failed" );
+					
+					return ((GameObject)asset.Ref).GetComponent<T>();
+				}
+					
+				Debug.LogError( $"[AssetRef] - Resources Resolver - Loading asset: {address} failed" );
+			}
+			
 			return (T)asset.Ref;
 		}
 		public override T					LoadAssetSync<T>		( AssetRef address )								
@@ -25,7 +43,24 @@ namespace Flexy.AssetRefs
 			if( AssetRef.AllowDirectAccessInEditor  )
 				return (T)EditorLoadAsset( address, typeof(T) );
 			
-			var asset	= UnityEngine.Resources.Load<ResourceRef>( $"AssetRefs/{address}" );
+			var asset	= UnityEngine.Resources.Load<ResourceRef>( $"AssetRefs/{address.ToString().Replace(":", "@")}" );
+			
+			if( !asset )
+			{
+				if( typeof(T).IsSubclassOf(typeof(MonoBehaviour)) )
+				{
+					var croppedAddress = new AssetRef( address.Uid, default );
+					asset	= UnityEngine.Resources.Load<ResourceRef>( $"AssetRefs/{croppedAddress.ToString()}" );
+					
+					if( !asset )
+						Debug.LogError( $"[AssetRef] - Resources Resolver - Loading asset: {address} failed" );
+					
+					return ((GameObject)asset.Ref).GetComponent<T>();
+				}
+				
+				Debug.LogError( $"[AssetRef] - Resources Resolver - Loading asset: {address} failed" );
+			}
+			
 			return (T)asset.Ref;
 		}
 		public override UniTask				DownloadDependencies	( AssetRef address, IProgress<Single> progress )	
