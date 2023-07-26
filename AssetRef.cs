@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Flexy.JsonXSpace;
+using Flexy.Utils.Editor;
 using Flexy.Utils.Extensions;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -28,19 +29,16 @@ namespace Flexy.AssetRefs
 		
 		public	async	UniTask			DownloadDependencies( IProgress<Single> progress = null )	
 		{
-			var resolver	= AssetRef.GetAssetResolver( );
-			await resolver.DownloadDependencies( this, progress );
+			await AssetRef.AssetResolver.DownloadDependencies( this, progress );
 		}
 		public	async	UniTask<Int32>	GetDownloadSize		( )										
 		{
-			var resolver	= AssetRef.GetAssetResolver( );
-			return await resolver.GetDownloadSize( this );
+			return await AssetRef.AssetResolver.GetDownloadSize( this );
 		}
 		
 		public			T				LoadAssetSync		( )										
 		{
-			var resolver	= AssetRef.GetAssetResolver( );
-			var asset		= resolver.LoadAssetSync<T>( this );
+			var asset		= AssetRef.AssetResolver.LoadAssetSync<T>( this );
 			
 			if( asset is T tr )
 				return tr;
@@ -52,8 +50,7 @@ namespace Flexy.AssetRefs
 		}
 		public async	UniTask<T> 		LoadAssetAsync		( IProgress<Single> progress = null )	
 		{
-			var resolver	= AssetRef.GetAssetResolver( );
-			var asset		= await resolver.LoadAssetAsync<T>( this, progress );
+			var asset		= await AssetRef.AssetResolver.LoadAssetAsync<T>( this, progress );
 			
 			if( asset is T tr )
 				return tr;
@@ -153,13 +150,6 @@ namespace Flexy.AssetRefs
 		public	Int64		SubId		=> _subId;
 		
 		public Boolean		IsNone		=> _uid == default;
-
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void Init( )
-		{
-			_sceneResolver		= new SceneResolver( );
-			_assetResolver		= new AssetResolver( );
-		}
 	
 		public override Int32			GetHashCode			( )									
 		{
@@ -212,34 +202,51 @@ namespace Flexy.AssetRefs
 		public		static			Boolean				RuntimeBehaviorEnabled;
 		public		static			Boolean				AllowDirectAccessInEditor => IsEditor && !RuntimeBehaviorEnabled;
 
-		private		static			SceneResolver		_sceneResolver;
-		private		static			AssetResolver		_assetResolver;
 		
-		public		static			SceneResolver		GetSceneResolver	( )		
+		public		static			AssetRefResolver	AssetResolver = new ResourcesAssetResolver();
+		
+#if UNITY_EDITOR
+		public static		Object			EditorLoadAsset				( AssetRef address, Type type )			
 		{
-			if( _sceneResolver == null )
-				Editor.RegisterResolversInEditor( );
-				
-			return _sceneResolver;
-		}
-		public		static			AssetResolver		GetAssetResolver	( )		
-		{
-			if( _assetResolver == null )
-				Editor.RegisterResolversInEditor( );
-				
-			return _assetResolver;
-		}
+			if ( address.IsNone )
+				return null;
 
-		public static class Editor
-		{
-			internal static void RegisterResolversInEditor( )
+			if( address.SubId == 0 ) //pure giud
 			{
-				#if UNITY_EDITOR
-				_sceneResolver = new SceneResolver( );
-				_assetResolver = new AssetResolver( );
-				#endif
+				var path = UnityEditor.AssetDatabase.GUIDToAssetPath( address.Uid.ToGUID( ) );
+			
+				return UnityEditor.AssetDatabase.LoadAssetAtPath( path, type );
+			}
+			else
+			{
+				var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( address.Uid.ToGUID( ) );
+				
+				foreach ( var asset in UnityEditor.AssetDatabase.LoadAllAssetsAtPath( path ) )
+				{
+					if ( !asset || !UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out Int64 instanceId ) ) 
+						continue;
+					
+					if( address.SubId == instanceId )
+						return asset;
+				}
 			}
 			
+			return null;
+		}
+		public static		AssetRef		EditorCreateAssetAddress	( Object asset )						
+		{
+			if( UnityEditor.AssetDatabase.IsMainAsset( asset ) && UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out Int64 instanceId ) )
+				return new AssetRef( new UnityEditor.GUID( guid ).ToHash( ), 0 );	
+			
+			if( UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
+				return new AssetRef( new UnityEditor.GUID( guid2 ).ToHash( ), instanceId2 );
+			
+			return default;
+		}
+#endif
+		
+		public static class Editor
+		{
 			#if UNITY_EDITOR
 			[UnityEditor.MenuItem("Tools/Flexy/AssetRefs/Enable Runtime Behavior")]			public static void		EnableRuntimeBehavior			( )	{ RuntimeBehaviorEnabled = true; }
 			[UnityEditor.MenuItem("Tools/Flexy/AssetRefs/Disable Runtime Behavior")]		public static void		DisableRuntimeBehavior			( )	{ RuntimeBehaviorEnabled = false; }

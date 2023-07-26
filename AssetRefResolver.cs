@@ -1,5 +1,6 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
+using Flexy.Utils.Editor;
 using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs
@@ -11,8 +12,5 @@ namespace Flexy.AssetRefs
 		
 		public abstract		UniTask			DownloadDependencies	( AssetRef address, IProgress<Single> progress );
 		public abstract		UniTask<Int32>	GetDownloadSize			( AssetRef address );
-		
-		public abstract		Object			EditorLoadAsset			( AssetRef address, Type type );
-		public abstract		AssetRef		EditorCreateAssetAddress( Object asset );
 	}
 }

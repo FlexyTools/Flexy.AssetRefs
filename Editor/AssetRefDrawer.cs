@@ -28,7 +28,7 @@ namespace Flexy.AssetRefs.Editor
 			var type			= GetFieldType( fieldInfo );
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
-			 	_assets[property.propertyPath] = AssetRef.GetAssetResolver( )?.EditorLoadAsset( new AssetRef( uidProp.hash128Value, subIdProp.longValue ), type );
+			 	_assets[property.propertyPath] = AssetRef.EditorLoadAsset( new AssetRef( uidProp.hash128Value, subIdProp.longValue ), type );
 			
 			_assets.TryGetValue( property.propertyPath, out var asset );
 
@@ -44,8 +44,7 @@ namespace Flexy.AssetRefs.Editor
 			//if( EditorGUI.EndChangeCheck( ) )
 			if( newobj != null )
 			{
-				var resolver	= AssetRef.GetAssetResolver( );
-				var @ref		= resolver.EditorCreateAssetAddress( newobj );
+				var @ref		= AssetRef.EditorCreateAssetAddress( newobj );
 				
 				uidProp.hash128Value	= @ref.Uid; 
 				subIdProp.longValue		= @ref.SubId;

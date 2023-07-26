@@ -11,12 +11,12 @@ using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs
 {
-	public class AssetResolver : AssetRefResolver
+	public class ResourcesAssetResolver : AssetRefResolver
 	{
 		public override async UniTask<T>	LoadAssetAsync<T>		( AssetRef address, IProgress<Single> progress )	
 		{
 			if ( AssetRef.AllowDirectAccessInEditor )
-				return (T)EditorLoadAsset( address, typeof(T) );
+				return (T)AssetRef.EditorLoadAsset( address, typeof(T) );
 			
 			var asset	= (ResourceRef) await UnityEngine.Resources.LoadAsync<ResourceRef>( $"AssetRefs/{address.ToString().Replace(":", "@")}" );
 			
@@ -41,7 +41,7 @@ namespace Flexy.AssetRefs
 		public override T					LoadAssetSync<T>		( AssetRef address )								
 		{
 			if( AssetRef.AllowDirectAccessInEditor  )
-				return (T)EditorLoadAsset( address, typeof(T) );
+				return (T)AssetRef.EditorLoadAsset( address, typeof(T) );
 			
 			var asset	= UnityEngine.Resources.Load<ResourceRef>( $"AssetRefs/{address.ToString().Replace(":", "@")}" );
 			
@@ -72,49 +72,8 @@ namespace Flexy.AssetRefs
 			return UniTask.FromResult(0);
 		}
 		
-		public override Object				EditorLoadAsset			( AssetRef address, Type type )						
-		{
-			#if UNITY_EDITOR
-			if ( address.IsNone )
-				return null;
-
-			if( address.SubId == 0 ) //pure giud
-			{
-				var path = AssetDatabase.GUIDToAssetPath( address.Uid.ToGUID( ) );
-			
-				return AssetDatabase.LoadAssetAtPath( path, type );
-			}
-			else
-			{
-				var path		= AssetDatabase.GUIDToAssetPath( address.Uid.ToGUID( ) );
-				
-				foreach ( var asset in AssetDatabase.LoadAllAssetsAtPath( path ) )
-				{
-					if ( !asset || !AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out Int64 instanceId ) ) 
-						continue;
-					
-					if( address.SubId == instanceId )
-							return asset;
-					}
-				}
-			#endif
-			
-			return null;
-		}
-		public override AssetRef				EditorCreateAssetAddress( Object asset )									
-		{
-			#if UNITY_EDITOR
-			
-			if( AssetDatabase.IsMainAsset( asset ) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out Int64 instanceId ) )
-				return new AssetRef( new GUID( guid ).ToHash( ), 0 );	
-			
-			if( AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId2 ) )
-				return new AssetRef( new GUID( guid2 ).ToHash( ), instanceId2 );
-			
-			#endif
-			
-			return default;
-		}
+		
+		
 		
 		// public static Object	LoadAssetBypassBungles				( String assetGuid, String subObjectName )		
 		// {
