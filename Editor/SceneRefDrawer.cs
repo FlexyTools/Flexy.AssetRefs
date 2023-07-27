@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 namespace Flexy.AssetRefs.Editor
 {
 	[CustomPropertyDrawer(typeof(SceneRef))]
-	public class AssetRef_SceneDrawer : PropertyDrawer
+	public class SceneRefDrawer : PropertyDrawer
 	{
 		private Dictionary<String, Object> _assets = new( );
 		

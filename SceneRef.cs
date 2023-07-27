@@ -31,7 +31,7 @@ namespace Flexy.AssetRefs
 			var (scene, ao) = AssetRef.AssetsLoader.LoadSceneAsync( this );
 			
 			#if FLEXY_GAMEWORLD
-			GameWorld_.GameWorld.GetGameWorld( context.scene ).RegisterGameScene( scene );
+			GameWorlds.GameWorld.GetGameWorld( context.scene ).RegisterGameScene( scene );
 			#endif
 			
 			await ao;
@@ -76,7 +76,7 @@ namespace Flexy.AssetRefs
 			var (scene, ao) = AssetRef.AssetsLoader.LoadSceneAsync( _ref );
 			
 #if FLEXY_GAMEWORLD
-			GameWorld_.GameWorld.GetGameWorld( context.scene ).RegisterGameScene( scene );
+			GameWorlds.GameWorld.GetGameWorld( context.scene ).RegisterGameScene( scene );
 #endif
 			
 			await ao;
