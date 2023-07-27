@@ -27,18 +27,18 @@ namespace Flexy.AssetRefs
 		
 		public			Boolean			IsNone				=> _uid == default;
 		
-		public	async	UniTask			DownloadDependencies( IProgress<Single> progress = null )	
-		{
-			await AssetRef.AssetResolver.DownloadDependencies( this, progress );
-		}
 		public	async	UniTask<Int32>	GetDownloadSize		( )										
 		{
-			return await AssetRef.AssetResolver.GetDownloadSize( this );
+			return await AssetRef.AssetsLoader.Package_GetDownloadSize( this );
+		}
+		public	async	UniTask			DownloadDependencies( )										
+		{
+			await AssetRef.AssetsLoader.Package_DownloadAsync( this );
 		}
 		
 		public			T				LoadAssetSync		( )										
 		{
-			var asset		= AssetRef.AssetResolver.LoadAssetSync<T>( this );
+			var asset		= AssetRef.AssetsLoader.LoadAssetSync<T>( this );
 			
 			if( asset is T tr )
 				return tr;
@@ -48,9 +48,9 @@ namespace Flexy.AssetRefs
 			
 			return default;
 		}
-		public async	UniTask<T> 		LoadAssetAsync		( IProgress<Single> progress = null )	
+		public async	UniTask<T> 		LoadAssetAsync		( )										
 		{
-			var asset		= await AssetRef.AssetResolver.LoadAssetAsync<T>( this, progress );
+			var asset		= await AssetRef.AssetsLoader.LoadAssetAsync<T>( this );
 			
 			if( asset is T tr )
 				return tr;
@@ -92,14 +92,14 @@ namespace Flexy.AssetRefs
 			return false;
 		}
 
-		public override	String			ToString			( )				
+		public override	String			ToString			( )										
 		{
 			if( _subId != 0 )
 				return $"{_uid}:{_subId}";
 			
 			return _uid == default ? String.Empty : $"{_uid}";
 		}
-		public 			void			FromString			( String data )	
+		public 			void			FromString			( String data )							
 		{
 			if( String.IsNullOrWhiteSpace( data ) )
 			{
@@ -199,14 +199,13 @@ namespace Flexy.AssetRefs
 			false;
 			#endif
 		
-		public		static			Boolean				RuntimeBehaviorEnabled;
-		public		static			Boolean				AllowDirectAccessInEditor => IsEditor && !RuntimeBehaviorEnabled;
-
+		public	static	Boolean			RuntimeBehaviorEnabled;
+		public	static	Boolean			AllowDirectAccessInEditor => IsEditor && !RuntimeBehaviorEnabled;
 		
-		public		static			AssetRefResolver	AssetResolver = new ResourcesAssetResolver();
+		public	static	AssetsLoader	AssetsLoader = new AssetsLoader_Resources( );
 		
 #if UNITY_EDITOR
-		public static		Object			EditorLoadAsset				( AssetRef address, Type type )			
+		public	static	Object			EditorLoadAsset				( AssetRef address, Type type )			
 		{
 			if ( address.IsNone )
 				return null;
@@ -233,7 +232,7 @@ namespace Flexy.AssetRefs
 			
 			return null;
 		}
-		public static		AssetRef		EditorCreateAssetAddress	( Object asset )						
+		public	static	AssetRef		EditorCreateAssetAddress	( Object asset )						
 		{
 			if( UnityEditor.AssetDatabase.IsMainAsset( asset ) && UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out Int64 instanceId ) )
 				return new AssetRef( new UnityEditor.GUID( guid ).ToHash( ), 0 );	
