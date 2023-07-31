@@ -1,17 +1,15 @@
 ﻿#if UNITY_EDITOR
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using UnityEngine;
 using UnityEngine.Serialization;
-using Object = UnityEngine.Object;
 
-namespace Flexy.AssetRefs
+
+namespace Flexy.AssetRefs.LoaderResources
 {
 	[CreateAssetMenu(fileName = "ResourceRefBuilder", menuName = "Flexy/AssetRefs/ResourcesIRefSourceBuilder")]
 	public class ResourcesIRefSourceBuilder : ScriptableObject, IPreprocessBuildWithReport

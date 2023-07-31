@@ -1,10 +1,14 @@
-using System;
-using Cysharp.Threading.Tasks;
+global using System;
+global using System.Collections.Generic;
+global using Cysharp.Threading.Tasks;
+global using UnityEngine;
+global using Object = UnityEngine.Object;
+
+using Flexy.AssetRefs.LoaderResources;
 using Flexy.JsonXSpace;
 using Flexy.Utils.Editor;
 using Flexy.Utils.Extensions;
-using UnityEngine;
-using Object = UnityEngine.Object;
+
 
 namespace Flexy.AssetRefs 
 {
@@ -27,7 +31,7 @@ namespace Flexy.AssetRefs
 		
 		public			Boolean			IsNone				=> _uid == default;
 		
-		public	async	UniTask<Int32>	GetDownloadSize		( )										
+		public	async	UniTask<UInt64>	GetDownloadSize		( )										
 		{
 			return await AssetRef.AssetsLoader.Package_GetDownloadSize( this );
 		}
