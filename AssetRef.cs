@@ -6,9 +6,11 @@ global using Object = UnityEngine.Object;
 
 using Flexy.AssetRefs.LoaderResources;
 using Flexy.JsonXSpace;
-using Flexy.Utils.Editor;
 using Flexy.Utils.Extensions;
 
+#if UNITY_EDITOR
+using Flexy.Utils.Editor;
+#endif
 
 namespace Flexy.AssetRefs 
 {
