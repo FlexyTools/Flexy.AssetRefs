@@ -65,11 +65,11 @@ namespace Flexy.AssetRefs.LoaderResources
 			return default;
 		}
 		
-		protected override		AsyncOperation			LoadSceneAsync_Impl			( SceneRef @ref )		
+		protected override		AsyncOperation			LoadSceneAsync_Impl			( SceneRef @ref, LoadSceneMode loadMode )		
         {
 			var address		= @ref.Uid;
         	var asset		= Resources.Load<ResourceRef>( $"AssetRefs/{address}" );
-        	var awaitable	= SceneManager.LoadSceneAsync( asset.Name, LoadSceneMode.Additive );
+        	var awaitable	= SceneManager.LoadSceneAsync( asset.Name, loadMode );
         	
         	return awaitable;
         }

@@ -19,7 +19,8 @@ namespace Flexy.AssetRefs
 		
 		public			UniTask<UInt64>	GetDownloadSize			( )		=> AssetRef.AssetsLoader.Package_GetDownloadSize( (AssetRef)this );
 		public			UniTask			DownloadAsync			( )		=> AssetRef.AssetsLoader.Package_DownloadAsync( (AssetRef)this ).ToUniTask( );
-		public			LoadTask<Scene> LoadSceneAsync			( GameObject context ) => AssetRef.AssetsLoader.LoadSceneAsync( this, context );
+		public			LoadTask<Scene> LoadSceneAsync			( GameObject context, LoadSceneMode loadMode = LoadSceneMode.Additive )						=> AssetRef.AssetsLoader.LoadSceneAsync( this, loadMode, context );
+		public static	LoadTask<Scene> LoadSceneAsyncByName	( GameObject context, String sceneName, LoadSceneMode loadMode = LoadSceneMode.Additive  )	=> AssetRef.AssetsLoader.LoadSceneByNameAsync( sceneName, loadMode, context );
 
 		public override	String			ToString				( )					
 		{
@@ -37,7 +38,7 @@ namespace Flexy.AssetRefs
 		}
 		
 		public static explicit operator AssetRef( SceneRef sr ) => new AssetRef( sr._uid, 0 );
+
+		
 	}
-	
-	
 }
