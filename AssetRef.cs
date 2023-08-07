@@ -113,8 +113,8 @@ namespace Flexy.AssetRefs
 				return;
 			}
 			
-			_uid = Guid.Parse( data[..32] ).ToHash(); 
-			_subId = data.Length == 32 ? 0 : Int64.Parse(data[32..]);
+			_uid	= Hash128.Parse( data[..32] ); 
+			_subId	= data.Length == 32 ? 0 : Int64.Parse(data[32..]);
 		}
 
 		public override Int32			GetHashCode			( )										
@@ -192,8 +192,8 @@ namespace Flexy.AssetRefs
 				return;
 			}
 
-			var uid = Guid.Parse( data[..32] ).ToHash(); 
-			var subId = data.Length == 32 ? 0 : Int64.Parse(data[32..]);
+			var uid		= Hash128.Parse( data[..32] ); 
+			var subId	= data.Length == 32 ? 0 : Int64.Parse(data[32..]);
 			
 			this = new AssetRef( uid, subId );
 		}
