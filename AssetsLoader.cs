@@ -204,17 +204,19 @@ namespace Flexy.AssetRefs
 		private UniTask<T>		_overallTask;
 		private LoadTaskData	_operation;
 		
-		public ELoadingState	LoadingState	=> _operation.LoadingState;
-		public Single			StateProgress	=> _operation.StateProgress;
-		public Single			OverallProgress	=> _operation.OverallProgress;
-		public UInt64			BytesDownloaded	=> _operation.BytesDownloaded;
+		public Boolean			IsEmpty			=> _operation == null;
+		
+		public ELoadingState	LoadingState	=> _operation?.LoadingState ?? ELoadingState.None;
+		public Single			StateProgress	=> _operation?.StateProgress ?? 0;
+		public Single			OverallProgress	=> _operation?.OverallProgress ?? 0;
+		public UInt64			BytesDownloaded	=> _operation?.BytesDownloaded ?? 0;
 		
 		public UniTask<T>		Task			=> _overallTask;
 		public Boolean			IsDone			=> _overallTask.Status != UniTaskStatus.Pending;
 		
 		public UniTask			WaitFrame		( ) => UniTask.DelayFrame( 1 );
 		public T				Result			( ) => GetAwaiter( ).GetResult( );
-		public UniTask			WaitState		( ELoadingState state ) { var o = _operation; return UniTask.WaitWhile( () => o.LoadingState < state ); }
+		public UniTask			WaitState		( ELoadingState state ) { var o = _operation; return UniTask.WaitWhile( () => o?.LoadingState < state ); }
 		
 		public UniTask<T>.Awaiter	GetAwaiter	( )	
 		{
