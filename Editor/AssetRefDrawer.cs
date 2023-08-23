@@ -15,7 +15,7 @@ namespace Flexy.AssetRefs.Editor
 		const Single _imageHeight = 60;
 		
 		// used to store cached objects of current SerializedObject our drawer part of
-		private Dictionary<String, Object> _assets = new( );
+		private Dictionary<String, (AssetRef @ref, Object asset)> _assets = new( );
 		
 		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
 		{
@@ -25,12 +25,16 @@ namespace Flexy.AssetRefs.Editor
 			var subIdProp		= property.FindPropertyRelative( "_subId" );
 			
 			var type			= GetFieldType( fieldInfo );
+			var assetRef		= new AssetRef( uidProp.hash128Value, subIdProp.longValue );
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
-			 	_assets[property.propertyPath] = AssetRef.EditorLoadAsset( new AssetRef( uidProp.hash128Value, subIdProp.longValue ), type );
+			 	_assets[property.propertyPath] = ( assetRef, AssetRef.EditorLoadAsset( assetRef, type ) );
 			
-			_assets.TryGetValue( property.propertyPath, out var asset );
+			_assets.TryGetValue( property.propertyPath, out var assetData );
 
+			if( assetData.@ref != assetRef )
+				assetData = _assets[property.propertyPath] = ( assetRef, AssetRef.EditorLoadAsset( assetRef, type ) );
+			
 			var drawPreview		= DrawPreview( uidProp, fieldInfo ); 
 			var isInline		= ArrayTableDrawer.DrawingInTableGUI;
 			
@@ -38,7 +42,7 @@ namespace Flexy.AssetRefs.Editor
 				position.xMin	+= 80;
 			
 			//EditorGUI.BeginChangeCheck( );
-			var newobj		= EditorGUI.ObjectField( position, label, asset, type, false );
+			var newobj		= EditorGUI.ObjectField( position, label, assetData.asset, type, false );
 			
 			//if( EditorGUI.EndChangeCheck( ) )
 			if( newobj != null )
@@ -48,7 +52,7 @@ namespace Flexy.AssetRefs.Editor
 				uidProp.hash128Value	= @ref.Uid; 
 				subIdProp.longValue		= @ref.SubId;
 				
-				_assets[property.propertyPath] = newobj;
+				_assets[property.propertyPath] = ( @ref, newobj );
 				
 				// var validateResult = resolver.Validate( );
 				// if( validateResult != validateResult.None )
