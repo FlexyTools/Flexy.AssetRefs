@@ -15,7 +15,7 @@ namespace Flexy.AssetRefs.Editor
 		
 		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
 		{
-			Profiler.BeginSample( "AssetRefDrawer" );
+			label = EditorGUI.BeginProperty( position, label, property );
 			
 			// var arr			= fieldInfo.GetCustomAttributes( typeof(AssetTypeAttribute), true );
 			// var attr			= (AssetTypeAttribute)( attribute ?? ( arr.Length > 0 ? arr[0] : null ) );
@@ -54,7 +54,7 @@ namespace Flexy.AssetRefs.Editor
 			
 			// Validate Reference
 			
-			Profiler.EndSample( );
+			EditorGUI.EndProperty( );
 		}
 
 		private					Object			EditorLoadAsset			( Hash128 address )		

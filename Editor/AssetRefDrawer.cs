@@ -19,7 +19,7 @@ namespace Flexy.AssetRefs.Editor
 		
 		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
 		{
-			Profiler.BeginSample( "AssetRefDrawer" );
+			label = EditorGUI.BeginProperty( position, label, property );
 			
 			var uidProp			= property.FindPropertyRelative( "_uid" );
 			var subIdProp		= property.FindPropertyRelative( "_subId" );
@@ -100,7 +100,7 @@ namespace Flexy.AssetRefs.Editor
 			}
 			// Validate Reference
 			
-			Profiler.EndSample( );
+			EditorGUI.EndProperty( );
 		}
 
 		private void DrawTexturePreview(Rect position, Sprite sprite)
