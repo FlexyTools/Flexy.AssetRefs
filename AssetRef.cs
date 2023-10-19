@@ -14,6 +14,8 @@ using Flexy.Utils.Editor;
 
 namespace Flexy.AssetRefs 
 {
+	//TODO: Add ability to load many assetrefs on one go. Like load entire bundle of assets and register all loaded assetrefs for fast access for 100500 assets it must be faster than loading 1 by 1
+	
 	[Serializable]
 	public struct AssetRef<T> : ISerializeAsString where T: Object
 	{
