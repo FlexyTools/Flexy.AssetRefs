@@ -17,7 +17,7 @@ namespace Flexy.AssetRefs
 	//TODO: Add ability to load many assetrefs on one go. Like load entire bundle of assets and register all loaded assetrefs for fast access for 100500 assets it must be faster than loading 1 by 1
 	
 	[Serializable]
-	public struct AssetRef<T> : ISerializeAsString where T: Object
+	public struct AssetRef<T> : IAssetRef, ISerializeAsString where T: Object
 	{
 		public	AssetRef ( Hash128 uid, Int32 internalId = 0 )	
 		{
@@ -140,10 +140,16 @@ namespace Flexy.AssetRefs
 		}
 
 		public static implicit operator AssetRef			( AssetRef<T> art )	=> new( art._uid, art._subId );
+		AssetRef IAssetRef.UntypedRef => this;
+	}
+	
+	public interface IAssetRef
+	{
+		public AssetRef UntypedRef {get;}
 	}
 	
 	// Not mean to be serializable. Used to pass untyped asset ref around in low level code 
-	public struct AssetRef
+	public struct AssetRef: IAssetRef
 	{
 		public AssetRef( Hash128 refAddress, Int64 internalId )
 		{
@@ -261,5 +267,7 @@ namespace Flexy.AssetRefs
 			[UnityEditor.MenuItem("Tools/Flexy/AssetRefs/Disable Runtime Behavior", true)]	public static Boolean	DisableRuntimeBehaviorValidate	( )	{ return RuntimeBehaviorEnabled; }
 			#endif
 		}
+
+		AssetRef IAssetRef.UntypedRef => this;
 	}
 }

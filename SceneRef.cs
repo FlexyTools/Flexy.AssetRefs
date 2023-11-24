@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 namespace Flexy.AssetRefs
 {
 	[Serializable]
-	public struct SceneRef : ISerializeAsString
+	public struct SceneRef : IAssetRef, ISerializeAsString
 	{
 		public	SceneRef ( String refAddress )	
 		{
@@ -41,6 +41,6 @@ namespace Flexy.AssetRefs
 		
 		public static explicit operator AssetRef( SceneRef sr ) => new AssetRef( sr._uid, 0 );
 
-		
+		AssetRef IAssetRef.UntypedRef => (AssetRef)this;
 	}
 }

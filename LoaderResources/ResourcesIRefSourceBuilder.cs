@@ -68,12 +68,17 @@ namespace Flexy.AssetRefs.LoaderResources
 					{
 						foreach ( var ca in ars.CollectAssets( ) )
 						{
+							if( !ca )
+								continue;
+							
 							var rref = CreateInstance<ResourceRef>( );
 							rref.Ref = ca;
 							rref.Name = ca.name;
 							
 							var assetAddress	= AssetRef.EditorCreateAssetAddress( ca );
-							AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress.ToString().Replace(":", "@")}.asset" );	
+							
+							try						{ AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress.ToString().Replace(":", "@")}.asset" ); }
+							catch (Exception ex)	{ Debug.LogException( ex ); }
 						}
 					}
 					else
@@ -81,7 +86,9 @@ namespace Flexy.AssetRefs.LoaderResources
 						var rref = CreateInstance<ResourceRef>( );
 						rref.Ref = r;
 						var assetAddress	= AssetRef.EditorCreateAssetAddress( r );
-						AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress.ToString().Replace(":", "@")}.asset" );
+						
+						try						{ AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress.ToString().Replace(":", "@")}.asset" ); }
+						catch (Exception ex)	{ Debug.LogException( ex ); }
 					}
 				}
 			}
