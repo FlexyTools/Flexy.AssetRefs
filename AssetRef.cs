@@ -5,7 +5,7 @@ global using UnityEngine;
 global using Object = UnityEngine.Object;
 
 using Flexy.AssetRefs.LoaderResources;
-using Flexy.JsonXSpace;
+using Flexy.JsonXs;
 using Flexy.Utils.Extensions;
 
 #if UNITY_EDITOR

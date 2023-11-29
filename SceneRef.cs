@@ -1,4 +1,4 @@
-﻿using Flexy.JsonXSpace;
+﻿using Flexy.JsonXs;
 using UnityEngine.SceneManagement;
 
 namespace Flexy.AssetRefs
