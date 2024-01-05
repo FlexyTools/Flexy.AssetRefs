@@ -141,6 +141,11 @@ namespace Flexy.AssetRefs
 
 		public static implicit operator AssetRef			( AssetRef<T> art )	=> new( art._uid, art._subId );
 		AssetRef IAssetRef.UntypedRef => this;
+
+		public Boolean Like( String cropId )
+		{
+			return _uid.ToString().StartsWith( cropId );
+		}
 	}
 	
 	public interface IAssetRef
