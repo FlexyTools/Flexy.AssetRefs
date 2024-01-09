@@ -1,4 +1,5 @@
-﻿using UnityEngine.Pool;
+﻿using Flexy.Core;
+using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
 
 namespace Flexy.AssetRefs
@@ -51,10 +52,8 @@ namespace Flexy.AssetRefs
 					
 					var scene		= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
 
-	#if FLEXY_GAMEWORLD
-					GameWorlds.GameWorld.GetGameWorld( context.scene ).RegisterGameScene( scene );
-	#endif
-					
+					GameContext.GetCtx( context.scene ).RegisterGameScene( scene );
+	
 					while( !sceneLoadOp.isDone )
 					{
 						op.StateProgress	= sceneLoadOp.progress;
@@ -97,11 +96,9 @@ namespace Flexy.AssetRefs
 					op.LoadingState = ELoadingState.Load;
 					
 					var sceneLoadOp		= loader.LoadSceneAsync_Impl( @ref, loadMode );
-					
-#if FLEXY_GAMEWORLD
-					var scene	= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
-					GameWorlds.GameWorld.GetGameWorld( context.scene ).RegisterGameScene( scene );
-#endif
+					var scene			= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
+					GameContext.GetCtx( context.scene ).RegisterGameScene( scene );
+
 					op.Operation = sceneLoadOp;
 					
 					while( !sceneLoadOp.isDone )
@@ -154,11 +151,9 @@ namespace Flexy.AssetRefs
 					op.LoadingState		= ELoadingState.Load;
 					
 					var sceneLoadOp		= SceneManager.LoadSceneAsync( sceneName, new LoadSceneParameters{ loadSceneMode = loadMode} );
-					
-#if FLEXY_GAMEWORLD
-					var scene	= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
-					GameWorlds.GameWorld.GetGameWorld( context.scene ).RegisterGameScene( scene );
-#endif
+					var scene			= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
+					GameContext.GetCtx( context.scene ).RegisterGameScene( scene );
+
 					op.Operation = sceneLoadOp;
 					
 					while( !sceneLoadOp.isDone )

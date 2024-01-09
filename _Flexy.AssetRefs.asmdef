@@ -6,7 +6,7 @@
         "GUID:9bda3f93b1735ac4e863872e1a4762e2",
         "GUID:0500b42cb82258245a8ba6d879e1c446",
         "GUID:43a3749a1730bca498057d7853cfda5f",
-        "GUID:0a6f55c097a4830479448868e3413cf9"
+        "GUID:8f8cd9da846c03a4e94c08df4d8e4e10"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -15,12 +15,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.flexy.gameworld",
-            "expression": "22",
-            "define": "FLEXY_GAMEWORLD"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }
