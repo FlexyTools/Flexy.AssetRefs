@@ -1,7 +1,7 @@
 {
-	"name": "com.flexy.assetrefs",
+	"name": "fun.flexy.assetrefs",
 	"displayName": "Flexy AssetRefs",
-	"version": "22.0.0",
+	"version": "5.0.0",
 	"unity": "2022.3",
 	"description": "Flexy Asset Reference System. Very Simple Stupid asset reference system with ability to make other AssetReference systems work as backed of it",
 	"keywords": [
@@ -10,7 +10,8 @@
 	],
 	"category": "Package, Asset Bundle, Resources, Asset Reference",
     "dependencies": {
-      "com.flexy.utils": "22.0.0",
+      "fun.flexy.core": "5.0.0",
+	  "fun.flexy.utils": "5.0.0",
       "com.cysharp.unitask": "2.2.5"
     },
 	"author": {

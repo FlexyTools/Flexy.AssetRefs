@@ -19,7 +19,7 @@ namespace Flexy.AssetRefs
 	[Serializable]
 	public struct AssetRef<T> : IAssetRef, ISerializeAsString where T: Object
 	{
-		public	AssetRef ( Hash128 uid, Int32 internalId = 0 )	
+		public	AssetRef ( Hash128 uid, Int64 internalId = 0 )	
 		{
 			_uid = uid;
 			_subId = 0;
