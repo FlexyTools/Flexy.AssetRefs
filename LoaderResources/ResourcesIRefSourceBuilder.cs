@@ -87,6 +87,9 @@ namespace Flexy.AssetRefs.LoaderResources
 						rref.Ref = r;
 						var assetAddress	= AssetRef.EditorCreateAssetAddress( r );
 						
+						if( r is SceneAsset sa )
+							rref.Name = sa.name;
+							
 						try						{ AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress.ToString().Replace(":", "@")}.asset" ); }
 						catch (Exception ex)	{ Debug.LogException( ex ); }
 					}
