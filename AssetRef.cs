@@ -3,7 +3,7 @@ global using System.Collections.Generic;
 global using Cysharp.Threading.Tasks;
 global using UnityEngine;
 global using Object = UnityEngine.Object;
-
+using System.Diagnostics;
 using Flexy.AssetRefs.LoaderResources;
 using Flexy.JsonXs;
 using Flexy.Utils.Extensions;
@@ -16,6 +16,7 @@ namespace Flexy.AssetRefs
 {
 	//TODO: Add ability to load many assetrefs on one go. Like load entire bundle of assets and register all loaded assetrefs for fast access for 100500 assets it must be faster than loading 1 by 1
 	
+	[DebuggerDisplay("{ToString()} = {LoadAssetSync()}")]
 	[Serializable]
 	public struct AssetRef<T> : IAssetRef, ISerializeAsString where T: Object
 	{
