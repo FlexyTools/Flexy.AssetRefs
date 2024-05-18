@@ -41,6 +41,8 @@ namespace Flexy.AssetRefs.LoaderResources
 			
 			foreach ( var builder in allAssets )
 				builder.CreateResourcesAssetForeachAssetRefSource();
+			
+			ResourcesDefaultScenesIRefSourceBuilder.CreateDefaultSceneRefs( );
 		}
 		
 		[ContextMenu("Create Resources Refs")]
@@ -166,16 +168,25 @@ namespace Flexy.AssetRefs.LoaderResources
 		{
 			Directory.CreateDirectory( "Assets/Resources/AssetRefs" );
 			
-			foreach ( var s in EditorBuildSettings.scenes )
+			try						
 			{
-				if ( !s.enabled )
-					continue;
+				AssetDatabase.StartAssetEditing( );
+            
+				foreach ( var s in EditorBuildSettings.scenes )
+				{
+					if ( !s.enabled )
+						continue;
 
-				var rref = ResourceRef.CreateInstance<ResourceRef>( );
-				rref.Ref = null;
-				rref.Name = Path.GetFileNameWithoutExtension( s.path );
-				
-				AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{s.guid}.asset" );
+					var rref = ResourceRef.CreateInstance<ResourceRef>( );
+					rref.Ref = null;
+					rref.Name = Path.GetFileNameWithoutExtension( s.path );
+					
+					AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{s.guid}.asset" );
+				}
+			}
+			finally
+			{
+				AssetDatabase.StopAssetEditing( );
 			}
 		}
 	}
