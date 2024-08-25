@@ -20,7 +20,7 @@ namespace Flexy.AssetRefs
 	[Serializable]
 	public struct AssetRef<T> : IAssetRef, ISerializeAsString where T: Object
 	{
-		public	AssetRef ( Hash128 uid, Int64 internalId = 0 )	
+		public	AssetRef ( Hash128 uid, Int64 subId = 0 )	
 		{
 			_uid = uid;
 			_subId = 0;
@@ -157,10 +157,10 @@ namespace Flexy.AssetRefs
 	// Not mean to be serializable. Used to pass untyped asset ref around in low level code 
 	public struct AssetRef: IAssetRef
 	{
-		public AssetRef( Hash128 refAddress, Int64 internalId )
+		public AssetRef( Hash128 refAddress, Int64 subId )
 		{
 			_uid	= refAddress;
-			_subId	= internalId;
+			_subId	= subId;
 		}
 		
 		private readonly	Hash128		_uid;
