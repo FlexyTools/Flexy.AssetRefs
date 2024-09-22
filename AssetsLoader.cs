@@ -6,6 +6,14 @@ namespace Flexy.AssetRefs
 {
 	public abstract class AssetsLoader
 	{
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void StaticClear( )
+		{
+			NewSceneCreatedAndLoadingStarted = null;
+		}
+		
+		public static event	Action<Scene,Scene>		NewSceneCreatedAndLoadingStarted; 
+		
 		public				UniTask<UInt64>			Package_GetDownloadSize		( AssetRef @ref ) => Package_GetDownloadSize_Impl	( @ref );
 		public				AsyncOperation			Package_DownloadAsync		( AssetRef @ref ) => Package_DownloadAsync_Impl		( @ref );
 		
@@ -56,7 +64,7 @@ namespace Flexy.AssetRefs
 					
 					var scene		= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
 
-					GameContext.GetCtx( context.scene ).RegisterGameScene( scene );
+					NewSceneCreatedAndLoadingStarted?.Invoke( context.scene, scene );
 	
 					while( !sceneLoadOp.isDone )
 					{
@@ -101,7 +109,8 @@ namespace Flexy.AssetRefs
 					
 					var sceneLoadOp		= loader.LoadSceneAsync_Impl( @ref, loadMode );
 					var scene			= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
-					GameContext.GetCtx( context.scene ).RegisterGameScene( scene );
+					
+					NewSceneCreatedAndLoadingStarted?.Invoke( context.scene, scene );
 
 					op.Operation = sceneLoadOp;
 					
@@ -156,8 +165,9 @@ namespace Flexy.AssetRefs
 					
 					var sceneLoadOp		= SceneManager.LoadSceneAsync( sceneName, new LoadSceneParameters{ loadSceneMode = loadMode} );
 					var scene			= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
-					GameContext.GetCtx( context.scene ).RegisterGameScene( scene );
-
+					
+					NewSceneCreatedAndLoadingStarted?.Invoke( context.scene, scene );
+					
 					op.Operation = sceneLoadOp;
 					
 					while( !sceneLoadOp.isDone )
