@@ -50,9 +50,9 @@ namespace Flexy.AssetRefs
 #if UNITY_EDITOR
 			static async UniTask<Scene> LoadSceneInEditorAsync( AssetsLoader loader, GameObject context, SceneRef @ref, LoadSceneMode loadMode, LoadTaskData op )
 			{
-				// try load scene normally and only if failed load throug editor routime
-				try						{ return await  LoadSceneInternalAsync( loader, context, @ref, loadMode, op ); }
-				catch ( Exception ex )	{ Utils.Logger.Debug.LogException( ex ); }
+				// // try load scene normally and only if failed -> load through editor load in play mode
+				// try						{ return await  LoadSceneInternalAsync( loader, context, @ref, loadMode, op ); }
+				// catch ( Exception ex )	{ Utils.Logger.Debug.LogException( ex ); }
 				
 				try
 				{
