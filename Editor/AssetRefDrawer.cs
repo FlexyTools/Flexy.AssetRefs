@@ -9,31 +9,35 @@ using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs.Editor
 {
+	[CustomPropertyDrawer(typeof(AssetRef))]
 	[CustomPropertyDrawer(typeof(AssetRef<>))]
 	public class AssetRefDrawer : PropertyDrawer
 	{
-		const Single _imageHeight = 60;
+		const Single ImageHeight = 60;
 		
 		// used to store cached objects of current SerializedObject our drawer part of
-		private Dictionary<String, (AssetRef @ref, Object asset)> _assets = new( );
+		private readonly Dictionary<String, (AssetRef @ref, Object? asset)> _assets = new( );
 		
 		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
 		{
-			label = EditorGUI.BeginProperty( position, label, property );
+			var arr			= fieldInfo.GetCustomAttributes( typeof(AssetTypeAttribute), true );
+			var attr		= (AssetTypeAttribute?)( attribute ?? ( arr.Length > 0 ? arr[0] : null ) );
+			
+			label			= EditorGUI.BeginProperty( position, label, property );
 			
 			var uidProp			= property.FindPropertyRelative( "_uid" );
 			var subIdProp		= property.FindPropertyRelative( "_subId" );
 			
-			var type			= GetFieldType( fieldInfo );
+			var type			= attr != null ? attr.AssetType : GetRefType( fieldInfo );
 			var assetRef		= new AssetRef( uidProp.hash128Value, subIdProp.longValue );
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
-			 	_assets[property.propertyPath] = ( assetRef, AssetRef.EditorLoadAsset( assetRef, type ) );
+			 	_assets[property.propertyPath] = ( assetRef, AssetsLoader.EditorLoadAsset( assetRef, type ) );
 			
 			_assets.TryGetValue( property.propertyPath, out var assetData );
 
 			if( assetData.@ref != assetRef )
-				assetData = _assets[property.propertyPath] = ( assetRef, AssetRef.EditorLoadAsset( assetRef, type ) );
+				assetData = _assets[property.propertyPath] = ( assetRef, AssetsLoader.EditorLoadAsset( assetRef, type ) );
 			
 			var drawPreview		= DrawPreview( uidProp, fieldInfo ); 
 			var isInline		= ArrayTableDrawer.DrawingInTableGUI;
@@ -44,10 +48,19 @@ namespace Flexy.AssetRefs.Editor
 			//EditorGUI.BeginChangeCheck( );
 			var newobj		= EditorGUI.ObjectField( position, label, assetData.asset, type, false );
 			
-			//if( EditorGUI.EndChangeCheck( ) )
-			if( newobj != null )
+			if (newobj is SceneAsset)
 			{
-				var @ref		= AssetRef.EditorCreateAssetAddress( newobj );
+				Debug.LogError		( $"[AssetRefDrawer] - OnGUI: Asset type (Scene) not able for AssetRef, use AssetRefScene" );
+				uidProp.hash128Value = default;
+				subIdProp.longValue = default;
+				EditorGUI.EndProperty( );
+				return;
+			}
+			
+			//if( EditorGUI.EndChangeCheck( ) )
+			if( newobj )
+			{
+				var @ref		= AssetsLoader.EditorGetAssetAddress( newobj );
 				
 				uidProp.hash128Value	= @ref.Uid; 
 				subIdProp.longValue		= @ref.SubId;
@@ -87,7 +100,7 @@ namespace Flexy.AssetRefs.Editor
 					else
 					{
 						position.y += 5;
-		                position.height = _imageHeight + EditorGUI.GetPropertyHeight(property, label, true);
+		                position.height = ImageHeight + EditorGUI.GetPropertyHeight(property, label, true);
 		                //EditorGUI.DrawPreviewTexture(position, sprite.texture, null, ScaleMode.ScaleToFit, 0);
 		                if( sprite is {} )
 							DrawTexturePreview(position, sprite );
@@ -131,25 +144,22 @@ namespace Flexy.AssetRefs.Editor
             GUI.DrawTextureWithTexCoords(position, sprite.texture, coords);
         }
 		
-		private static Type GetFieldType( FieldInfo fieldInfo )
+		private static Type GetRefType( FieldInfo fieldInfo )
 		{
-			var type			= default(Type);
+			var type = fieldInfo.FieldType;
 			
-			if( fieldInfo.FieldType.IsArray )
-				type = fieldInfo.FieldType.GetElementType()?.GetGenericArguments()[0];
+			if			( type.IsArray )															type = fieldInfo.FieldType.GetElementType()!;
+			else if		( type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>) )	type = fieldInfo.FieldType.GetGenericArguments()[0];
 			
-			else if( fieldInfo.FieldType.IsGenericType && fieldInfo.FieldType.GetGenericTypeDefinition() == typeof(List<>) )
-				type = fieldInfo.FieldType.GetGenericArguments()[0].GetGenericArguments()[0];
-					 
-			else
-				type = fieldInfo.FieldType.GetGenericArguments()[0];
+			if( type.IsGenericType )	type = type.GetGenericArguments()[0];
+			else						type = typeof(Object);
 			
 			return type;
 		}
 		
 		public static Boolean DrawPreview( SerializedProperty property, FieldInfo fieldInfo )
 		{
-			var type = GetFieldType( fieldInfo );
+			var type = GetRefType( fieldInfo );
 			
 			return type == typeof(Sprite) && property.hash128Value != default; 
 		}
@@ -160,7 +170,7 @@ namespace Flexy.AssetRefs.Editor
 			
 			if ( DrawPreview( addressProp, fieldInfo ) && !ArrayTableDrawer.DrawingInTableGUI )
 	        {
-	            return EditorGUI.GetPropertyHeight(addressProp, label, true) + _imageHeight + 10;
+	            return EditorGUI.GetPropertyHeight(addressProp, label, true) + ImageHeight + 10;
 	        }
 			
 			

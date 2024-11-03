@@ -11,7 +11,7 @@ namespace Flexy.AssetRefs.Editor
 	[CustomPropertyDrawer(typeof(SceneRef))]
 	public class SceneRefDrawer : PropertyDrawer
 	{
-		private Dictionary<String, (AssetRef @ref, Object asset)> _assets = new( );
+		private readonly Dictionary<String, (AssetRef @ref, Object? asset)> _assets = new( );
 		
 		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
 		{
@@ -21,7 +21,7 @@ namespace Flexy.AssetRefs.Editor
 			// var attr			= (AssetTypeAttribute)( attribute ?? ( arr.Length > 0 ? arr[0] : null ) );
 
 			var uidProp			= property.FindPropertyRelative( "_uid" );
-			var refAddress		= uidProp.hash128Value;
+			var refUid			= uidProp.hash128Value;
 
 			var type			= typeof(SceneAsset);
 			
@@ -30,18 +30,18 @@ namespace Flexy.AssetRefs.Editor
 			
 			//Debug.Log			( $"[AssetRefDrawer] - OnGUI: {type}" );
 
-			var assetRef		= new AssetRef( refAddress, 0 );
+			var assetRef		= new AssetRef( refUid, 0 );
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
-				_assets[property.propertyPath] = (assetRef, EditorLoadAsset( refAddress ) );
+				_assets[property.propertyPath] = (assetRef, EditorLoadAsset( refUid ) );
 			
 			_assets.TryGetValue( property.propertyPath, out var assetData );
 			
 			if( assetData.@ref != assetRef )
-				assetData = _assets[property.propertyPath] = ( assetRef, EditorLoadAsset( refAddress ) );
+				assetData = _assets[property.propertyPath] = ( assetRef, EditorLoadAsset( refUid ) );
 			
-			if( assetData.asset == null && refAddress != default )
-				assetData.asset = EditorLoadAsset( refAddress );
+			if( assetData.asset == null && refUid != default )
+				assetData.asset = EditorLoadAsset( refUid );
 			
 			EditorGUI.BeginChangeCheck( );
 			
@@ -62,7 +62,7 @@ namespace Flexy.AssetRefs.Editor
 			EditorGUI.EndProperty( );
 		}
 
-		private					Object			EditorLoadAsset			( Hash128 address )		
+		private					Object?			EditorLoadAsset			( Hash128 address )		
 		{
 			if( address == default )
 				return null;

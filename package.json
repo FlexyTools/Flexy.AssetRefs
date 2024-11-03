@@ -10,8 +10,6 @@
 	],
 	"category": "Package, Asset Bundle, Resources, Asset Reference",
     "dependencies": {
-      "fun.flexy.core": "5.0.0",
-	  "fun.flexy.utils": "5.0.0",
       "com.cysharp.unitask": "2.2.5"
     },
 	"author": {
