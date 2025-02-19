@@ -1,0 +1,43 @@
+{
+    "name": "UniTaskEmbed",
+    "rootNamespace": "",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "!FULL_UNITASK_IMPORTED",
+        "!FLEXY_UNITASK_EMBED_DISABLE"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.physics",
+            "expression": "",
+            "define": "UNITASK_PHYSICS_SUPPORT"
+        },
+        {
+            "name": "com.unity.modules.physics2d",
+            "expression": "",
+            "define": "UNITASK_PHYSICS2D_SUPPORT"
+        },
+        {
+            "name": "com.unity.modules.particlesystem",
+            "expression": "",
+            "define": "UNITASK_PARTICLESYSTEM_SUPPORT"
+        },
+        {
+            "name": "com.unity.modules.unitywebrequest",
+            "expression": "",
+            "define": "UNITASK_WEBREQUEST_SUPPORT"
+        },
+        {
+            "name": "com.cysharp.unitask",
+            "expression": "",
+            "define": "FULL_UNITASK_IMPORTED"
+        }
+    ],
+    "noEngineReferences": false
+}

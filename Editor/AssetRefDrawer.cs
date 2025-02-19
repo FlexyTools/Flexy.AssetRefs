@@ -20,6 +20,15 @@ namespace Flexy.AssetRefs.Editor
 		
 		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
 		{
+		    if (property.serializedObject.isEditingMultipleObjects)
+		    {
+		        EditorGUI.BeginProperty(position, label, property);
+		        Rect fieldRect = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+		        GUI.Box(fieldRect, "—", EditorStyles.textField);
+		        EditorGUI.EndProperty();
+		        return;
+		    }	
+			
 			var arr			= fieldInfo.GetCustomAttributes( typeof(AssetTypeAttribute), true );
 			var attr		= (AssetTypeAttribute?)( attribute ?? ( arr.Length > 0 ? arr[0] : null ) );
 			

@@ -1,20 +1,21 @@
 {
-	"name": "fun.flexy.assetrefs",
-	"displayName": "Flexy AssetRefs",
-	"version": "5.0.0",
-	"unity": "2022.3",
-	"description": "Flexy Asset Reference System. Very Simple Stupid asset reference system with ability to make other AssetReference systems work as backed of it",
-	"keywords": [
-		"Asset",
-		"Reference"
-	],
-	"category": "Package, Asset Bundle, Resources, Asset Reference",
-    "dependencies": {
-      "com.cysharp.unitask": "2.2.5"
-    },
-	"author": {
-    	"name": "Flexy Tools",
-        "email" : "JesObertyukh@gmail.com",
-        "url" : "https://github.com/FlexyTools/Flexy.AssetRefs"
-    }
+  "name": "fun.flexy.assetrefs",
+  "displayName": "Flexy AssetRefs",
+  "version": "5.0.0",
+  "unity": "2022.3",
+  "description": "Flexy Asset Reference System. Very Simple Stupid asset reference system with ability to make other AssetReference systems work as backed of it",
+  "keywords": [
+    "Asset",
+    "Reference",
+	"AssetRef",
+	"Async",
+	"Resource",
+	"Load"
+  ],
+  "category": "Package, Resources, Asset Reference",
+  "author": {
+    "name": "Flexy Tools",
+    "email": "JesObertyukh@gmail.com",
+    "url": "https://github.com/FlexyTools/Flexy.AssetRefs"
+  }
 }

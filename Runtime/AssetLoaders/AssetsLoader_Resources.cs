@@ -1,117 +1,87 @@
 ﻿using System.IO;
+using Flexy.AssetRefs.Pipelines;
 
 namespace Flexy.AssetRefs.AssetLoaders;
 
 public class AssetsLoader_Resources : AssetsLoader
 {
-	protected override		Int64					Package_GetDownloadBytes_Impl( AssetRef @ref )		=> 0;
-	protected override		LoadTask<Boolean>		Package_DownloadAsync_Impl	( AssetRef @ref )		=> LoadTask.FromResult(true);
-
-	protected override async UniTask<T>				LoadAssetAsync_Impl<T>		( AssetRef @ref )		
+	protected override async UniTask<T?>			LoadAssetAsync_Impl<T>		( AssetRef @ref ) where T : class		
 	{
-		var resourceRef	= (ResourceRef) await Resources.LoadAsync<ResourceRef>( $"AssetRefs/{@ref}" );
+		var resourceRef	= (ResourceRef) await Resources.LoadAsync<ResourceRef>( $"Fun.Flexy/AssetRefs/{@ref}" );
 
-		if (resourceRef) 
+		if( !resourceRef )
+			resourceRef		= (ResourceRef) await Resources.LoadAsync<ResourceRef>( $"Fun.Flexy/AssetRefs/{@ref.Uid.ToString()}" );
+		
+		if( !resourceRef )
 		{
-			var result	= resourceRef.Ref; 
-			if ( result is Sprite sprite )
-				await UniTask.WaitWhile( ( ) => !sprite.texture ).Timeout( TimeSpan.FromSeconds(10) );
-			
-			if( result == null )
-				throw new ArgumentException( $"[AssetRef] - Resources Loader - Loading asset: {@ref} failed", "@ref" );
-			
-			return (T)result;
+			Debug.LogError( $"[AssetsLoader] Resources - RefFile is absent for: {@ref}" );
+			return null;
 		}
-			
-		if( typeof(T).IsSubclassOf(typeof(MonoBehaviour)) )
+		
+		if ( resourceRef.Ref is Sprite sprite )
 		{
-			var croppedAddress = new AssetRef( @ref.Uid, default );
-			resourceRef	= (ResourceRef) await Resources.LoadAsync<ResourceRef>( $"AssetRefs/{croppedAddress.ToString()}" );
-					
-			if( !resourceRef )
-				throw new ArgumentException( $"[AssetRef] - Resources Loader - Loading asset: {@ref} failed", "@ref" );
-			
-			var go = (GameObject?)resourceRef.Ref;
-			if( go != null )
-			{
-				var c = go.GetComponent<T>( );
-				return c;
-			}
+			await UniTask.WaitWhile( ( ) => !sprite.texture ).Timeout( TimeSpan.FromSeconds(10) );
+			return (T?)resourceRef.Ref;
 		}
-					
-		throw new ArgumentException( $"[AssetRef] - Resources Loader - Loading asset: {@ref} failed", "@ref" );
+		
+		return LoadFinalising<T>( resourceRef.Ref );
+	}
+	protected override		T?						LoadAssetSync_Impl<T>		( AssetRef @ref ) where T : class		
+	{		
+		var resourceRef	= Resources.Load<ResourceRef>( $"Fun.Flexy/AssetRefs/{@ref}" );
+
+		if( !resourceRef )
+			resourceRef		= Resources.Load<ResourceRef>( $"Fun.Flexy/AssetRefs/{@ref.Uid.ToString()}" );
+		
+		return LoadFinalising<T>( resourceRef.Ref );
 	}
 	
-	protected override		T						LoadAssetSync_Impl<T>		( AssetRef @ref )		
-	{		
-		var resourceRef	= Resources.Load<ResourceRef>( $"AssetRefs/{@ref}" );
-
-		if (resourceRef) 
-		{
-			var result	= resourceRef.Ref; 
-			
-			if( result == null )
-				throw new ArgumentException( $"[AssetRef] - Resources Loader - Loading asset: {@ref} failed", "@ref" );
-			
-			return (T)result;
-		}
-			
-		if( typeof(T).IsSubclassOf(typeof(MonoBehaviour)) )
-		{
-			var croppedAddress = new AssetRef( @ref.Uid, default );
-			resourceRef	= Resources.Load<ResourceRef>( $"AssetRefs/{croppedAddress.ToString()}" );
-					
-			if( !resourceRef )
-				throw new ArgumentException( $"[AssetRef] - Resources Loader - Loading asset: {@ref} failed", "@ref" );
-					
-			var go = (GameObject?)resourceRef.Ref;
-			if( go != null )
-			{
-				var c = go.GetComponent<T>( );
-				return c;
-			}
-		}
-		
-		throw new ArgumentException( $"[AssetRef] - Resources Loader - Loading asset: {@ref} failed", "@ref" );
-	}
-		
-	protected override		String					GetSceneName_Impl			( SceneRef @ref )								
+	protected override		String					GetSceneName_Impl			( SceneRef @ref )							
 	{
 		var address		= @ref.Uid;
-		var asset		= Resources.Load<ResourceRef>( $"AssetRefs/{address}" );
+		var asset		= Resources.Load<ResourceRef>( $"Fun.Flexy/AssetRefs/{address}" );
 			
 		return asset.Name ?? "";
 	}
-	protected override		SceneTask				LoadSceneAsync_Impl			( SceneRef @ref, SceneTask.Parameters p )		
+	protected override		SceneTask				LoadSceneAsync_Impl			( SceneRef @ref, SceneTask.Parameters p )	
 	{
 		var address			= @ref.Uid;
-		var asset			= Resources.Load<ResourceRef>( $"AssetRefs/{address}" );
+		var asset			= Resources.Load<ResourceRef>( $"Fun.Flexy/AssetRefs/{address}" );
 		var sceneLoadOp		= SceneManager.LoadSceneAsync( asset.Name, new LoadSceneParameters( p.LoadMode, p.PhysicsMode ) );
 		sceneLoadOp.allowSceneActivation = p.ActivateOnLoad;
 		sceneLoadOp.priority = p.Priority;
 		var scene			= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );	
 		
-		var info			= SceneTask.GetSceneInfo( );
+		var info			= SceneTask.GetSceneData( );
 		info.Scene			= scene;
 		info.DelaySceneActivation = !p.ActivateOnLoad;
 		
 		return new( SceneLoadWaitImpl( sceneLoadOp, info ), info );
 	}
+
+	private					T?						LoadFinalising<T>			( Object? obj ) where T : Object			
+	{
+		var result	= obj; 
+		
+		if( result is GameObject go && typeof(T).IsSubclassOf(typeof(MonoBehaviour)) )
+			return go.GetComponent<T>( );
+					
+		return (T?)result;
+	}
 	
 	#if UNITY_EDITOR
-	public class ResourcesPopulateRefs : IRefsProcessor
+	public class ResourcesPopulateRefs : IPipelineTask
 	{
-		public void Process( RefsCollector collector, RefsCollector.List refs, Boolean isPreview )
+		public void Run( Pipeline ppln, Context ctx )
 		{
-			if( isPreview )
-				return;
-
 			Debug.Log			( $"[ResourcesIRefSourceBuilder] - CreateResourcesAssetForeachAssetRefSource" );
 		
-			Directory.CreateDirectory( "Assets/Resources/AssetRefs" );
+			Directory.CreateDirectory( "Assets/Resources/Fun.Flexy/AssetRefs" );
 		
 			try						
 			{
+				var refs = ctx.Get<RefsList>( );
+				
 				UnityEditor.AssetDatabase.StartAssetEditing( );
 		
 				var ress = refs;
@@ -120,7 +90,7 @@ public class AssetsLoader_Resources : AssetsLoader
 				{
 					if ( !r )
 					{
-						Debug.LogError( $"[ResourcesIRefSourceBuilder] - CreateResourcesAssetForeachAssetRefSource: resource is null in {collector.name} collector. Skipped", collector );
+						Debug.LogError( $"[ResourcesIRefSourceBuilder] - CreateResourcesAssetForeachAssetRefSource: resource is null in {ppln.name} collector. Skipped", ppln );
 						continue;
 					}
 
@@ -131,7 +101,7 @@ public class AssetsLoader_Resources : AssetsLoader
 					if( r is UnityEditor.SceneAsset sa )
 						rref.Name = sa.name;
 					
-					try						{ UnityEditor.AssetDatabase.CreateAsset( rref, $"Assets/Resources/AssetRefs/{assetAddress}.asset" ); }
+					try						{ UnityEditor.AssetDatabase.CreateAsset( rref, $"Assets/Resources/Fun.Flexy/AssetRefs/{assetAddress}.asset" ); }
 					catch (Exception ex)	{ Debug.LogException( ex ); }
 				}
 			}
