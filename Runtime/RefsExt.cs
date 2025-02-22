@@ -12,9 +12,4 @@ public static class RefsExt
 	
 	public static			T?					LoadAssetTypedSync<T>	( this AssetRef @ref ) where T : Object	=> new AssetRef<T>( @ref.Uid, @ref.SubId ).LoadAssetSync( );
 	public static			UniTask<T?>			LoadAssetTyped<T>		( this AssetRef @ref ) where T : Object	=> new AssetRef<T>( @ref.Uid, @ref.SubId ).LoadAssetAsync( );
-	
-	#if UNITY_EDITOR
-	public static			Object?				LoadEditorAsset			( this AssetRef @ref )						=> AssetsLoader.EditorLoadAsset( @ref, typeof(Object) );
-	public static			Object?				LoadEditorAsset<T>		( this AssetRef<T> @ref ) where T : Object	=> AssetsLoader.EditorLoadAsset( @ref, typeof(T) );
-	#endif
 }

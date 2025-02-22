@@ -22,9 +22,9 @@ public abstract class AssetsLoader
 		
 		public static event	Action<Scene,Scene>?	NewSceneCreatedAndLoadingStarted; 
 		
-		public		 		UniTask<T?>				LoadAssetAsync<T>			( AssetRef @ref ) where T:Object		
+		public		 			UniTask<T?>			LoadAssetAsync<T>			( AssetRef @ref ) where T:Object		
 		{
-			if (@ref == AssetRef.None)
+			if ( @ref.IsNone )
 				return UniTask.FromResult<T?>( null );
 			
 			try
@@ -52,9 +52,9 @@ public abstract class AssetsLoader
 				return UniTask.FromResult<T?>(null);
 			}
 		}
-		public 				T?						LoadAssetSync<T>			( AssetRef @ref ) where T:Object		
+		public 					T?					LoadAssetSync<T>			( AssetRef @ref ) where T:Object		
 		{
-			if (@ref == AssetRef.None)
+			if ( @ref.IsNone )
 				return null;
 			
 			try
@@ -72,7 +72,7 @@ public abstract class AssetsLoader
 				return null;
 			}
 		}
-		public				String?					GetSceneName				( SceneRef @ref )						
+		public					String?				GetSceneName				( SceneRef @ref )						
 		{
 #if UNITY_EDITOR			
 			if( AllowDirectAccessInEditor || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
@@ -84,7 +84,7 @@ public abstract class AssetsLoader
 			
 			return GetSceneName_Impl( @ref );
 		}
-		public				SceneTask				LoadSceneAsync				( SceneRef @ref, SceneTask.Parameters p, GameObject context )	
+		public					SceneTask			LoadSceneAsync				( SceneRef @ref, SceneTask.Parameters p, GameObject context )	
 		{
 			SceneTask sceneTask;
 			
@@ -113,7 +113,7 @@ public abstract class AssetsLoader
 			
 			return sceneTask;
 		}
-		public				SceneTask				LoadDummyScene				( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects )
+		public					SceneTask			LoadDummyScene				( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects )
 		{
 			var task = LoadDummyScene_Impl( mode, unloadOptions );
 			
@@ -150,8 +150,8 @@ public abstract class AssetsLoader
 		
 		protected abstract		UniTask<T?>			LoadAssetAsync_Impl<T>		( AssetRef @ref ) where T:Object;
 		protected abstract		T?					LoadAssetSync_Impl<T>		( AssetRef @ref ) where T:Object;
-		protected abstract 		SceneTask			LoadSceneAsync_Impl			( SceneRef @ref, SceneTask.Parameters p );
 		protected abstract		String?				GetSceneName_Impl			( SceneRef @ref );
+		protected abstract 		SceneTask			LoadSceneAsync_Impl			( SceneRef @ref, SceneTask.Parameters p );
 		protected virtual		SceneTask			LoadDummyScene_Impl			( LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects )
 		{
 			var data			= SceneTask.GetSceneData( );

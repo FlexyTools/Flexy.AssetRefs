@@ -9,7 +9,6 @@ using Object = UnityEngine.Object;
 
 namespace Flexy.AssetRefs.Editor
 {
-	[CustomPropertyDrawer(typeof(AssetRef))]
 	[CustomPropertyDrawer(typeof(AssetRef<>))]
 	public class AssetRefDrawer : PropertyDrawer
 	{
@@ -18,26 +17,25 @@ namespace Flexy.AssetRefs.Editor
 		// used to store cached objects of current SerializedObject our drawer part of
 		private readonly Dictionary<String, (AssetRef @ref, Object? asset)> _assets = new( );
 		
-		public override void OnGUI ( Rect position, SerializedProperty property, GUIContent label )
+		public override		void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )	
 		{
 		    if (property.serializedObject.isEditingMultipleObjects)
 		    {
 		        EditorGUI.BeginProperty(position, label, property);
-		        Rect fieldRect = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+		        var fieldRect = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 		        GUI.Box(fieldRect, "—", EditorStyles.textField);
 		        EditorGUI.EndProperty();
 		        return;
 		    }	
 			
-			var arr			= fieldInfo.GetCustomAttributes( typeof(AssetTypeAttribute), true );
-			var attr		= (AssetTypeAttribute?)( attribute ?? ( arr.Length > 0 ? arr[0] : null ) );
-			
-			label			= EditorGUI.BeginProperty( position, label, property );
+			label				= EditorGUI.BeginProperty( position, label, property );
 			
 			var uidProp			= property.FindPropertyRelative( "_uid" );
 			var subIdProp		= property.FindPropertyRelative( "_subId" );
 			
-			var type			= attr != null ? attr.AssetType : GetRefType( fieldInfo );
+			// var attr			= fieldInfo.GetCustomAttribute<AssetTypeAttribute>( true );
+			// var type			= attr != null ? attr.AssetType : GetRefType( fieldInfo );
+			var type			= GetRefType( fieldInfo );
 			var assetRef		= new AssetRef( uidProp.hash128Value, subIdProp.longValue );
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
@@ -66,7 +64,6 @@ namespace Flexy.AssetRefs.Editor
 				return;
 			}
 			
-			//if( EditorGUI.EndChangeCheck( ) )
 			if( newobj )
 			{
 				var @ref		= AssetsLoader.EditorGetAssetAddress( newobj );
@@ -76,9 +73,6 @@ namespace Flexy.AssetRefs.Editor
 				
 				_assets[property.propertyPath] = ( @ref, newobj );
 				
-				// var validateResult = resolver.Validate( );
-				// if( validateResult != validateResult.None )
-				// 	Draw.ErrorBox( $"ref currently is not valid: {validateResult}" );
 				if( drawPreview )
 				{
 					var sprite		= newobj as Sprite;
@@ -88,8 +82,6 @@ namespace Flexy.AssetRefs.Editor
 					{
 						var spriteRect		= position;
 						var isOdd			= ArrayTableDrawer.DrawingArrayElementOnPage % 2 == 0; 
-						
-						//Debug.Log			( $"[AssetRefDrawer] - OnGUI: {(Int32)spriteRect.y}" );
 						
 						spriteRect.xMin		-= 80;
 						spriteRect.width	= 40;
@@ -101,20 +93,20 @@ namespace Flexy.AssetRefs.Editor
 							spriteRect.x	+= 40;
 						}
 						
-						if( sprite is {} )
-							DrawTexturePreview(spriteRect, sprite );
+						if( sprite is not null )
+							DrawTexturePreview( spriteRect, sprite );
 						else
-							GUI.DrawTexture(spriteRect, tx, ScaleMode.ScaleToFit);
+							GUI.DrawTexture( spriteRect, tx, ScaleMode.ScaleToFit );
 					}
 					else
 					{
 						position.y += 5;
-		                position.height = ImageHeight + EditorGUI.GetPropertyHeight(property, label, true);
-		                //EditorGUI.DrawPreviewTexture(position, sprite.texture, null, ScaleMode.ScaleToFit, 0);
-		                if( sprite is {} )
-							DrawTexturePreview(position, sprite );
+		                position.height = ImageHeight + EditorGUI.GetPropertyHeight( property, label, true );
+		                
+		                if( sprite is not null )
+							DrawTexturePreview( position, sprite );
 						else
-							GUI.DrawTexture(position, tx, ScaleMode.ScaleToFit);
+							GUI.DrawTexture( position, tx, ScaleMode.ScaleToFit );
 					}
 				}
 			}
@@ -124,12 +116,20 @@ namespace Flexy.AssetRefs.Editor
 				subIdProp.longValue				= default;
 				_assets[property.propertyPath]	= default;
 			}
-			// Validate Reference
 			
 			EditorGUI.EndProperty( );
 		}
-
-		private void DrawTexturePreview(Rect position, Sprite sprite)
+		public override		Single	GetPropertyHeight	( SerializedProperty property, GUIContent label )					
+		{
+			var addressProp		= property.FindPropertyRelative( "_uid" );
+			
+			if ( DrawPreview( addressProp, fieldInfo ) && !ArrayTableDrawer.DrawingInTableGUI )
+				return EditorGUI.GetPropertyHeight( addressProp, label, true ) + ImageHeight + 10;
+			
+			return EditorGUI.GetPropertyHeight( addressProp, label, true );
+		}
+		
+		private static		void	DrawTexturePreview	( Rect position, Sprite sprite )						
         {
             var fullSize	= new Vector2(sprite.texture.width, sprite.texture.height);
             var size		= new Vector2(sprite.textureRect.width, sprite.textureRect.height);
@@ -152,8 +152,7 @@ namespace Flexy.AssetRefs.Editor
  
             GUI.DrawTextureWithTexCoords(position, sprite.texture, coords);
         }
-		
-		private static Type GetRefType( FieldInfo fieldInfo )
+		private static		Type	GetRefType			( FieldInfo fieldInfo )									
 		{
 			var type = fieldInfo.FieldType;
 			
@@ -165,25 +164,22 @@ namespace Flexy.AssetRefs.Editor
 			
 			return type;
 		}
-		
-		public static Boolean DrawPreview( SerializedProperty property, FieldInfo fieldInfo )
+		private static		Boolean	DrawPreview			( SerializedProperty property, FieldInfo fieldInfo )	
 		{
 			var type = GetRefType( fieldInfo );
 			
 			return type == typeof(Sprite) && property.hash128Value != default; 
 		}
-	 
-	    public override Single GetPropertyHeight( SerializedProperty property, GUIContent label )
-	    {
-	        var addressProp		= property.FindPropertyRelative( "_uid" );
-			
-			if ( DrawPreview( addressProp, fieldInfo ) && !ArrayTableDrawer.DrawingInTableGUI )
-	        {
-	            return EditorGUI.GetPropertyHeight(addressProp, label, true) + ImageHeight + 10;
-	        }
-			
-			
-	        return EditorGUI.GetPropertyHeight(addressProp, label, true);
-	    }
 	}
 }
+
+#if !FLEXY_UTILS
+namespace Flexy.Utils.Editor
+{
+	public static class ArrayTableDrawer
+	{
+		public static Boolean	DrawingInTableGUI			{ get; }
+		public static Int32		DrawingArrayElementOnPage	{ get; }
+	}
+}
+#endif
