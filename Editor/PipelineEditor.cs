@@ -82,6 +82,9 @@ namespace Flexy.AssetRefs.Editor
 		}
 		private void SelectTab( Int32 index )
 		{
+			if( _tabs.hierarchy.childCount <= index || _tabsContent.hierarchy.childCount <= index )
+				return;
+			
 			ColorUtility.TryParseHtmlString("#242424", out var color );
 			for (var i = 0; i < _tabsContent.childCount; i++)
 			{

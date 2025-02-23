@@ -24,9 +24,21 @@ public class ResourcesPopulateRefs : IPipelineTask
 					continue;
 				}
 
-				var rref = ScriptableObject.CreateInstance<ResourceRef>( );
-				rref.Ref = r;
 				var assetAddress	= AssetsLoader.EditorGetAssetAddress( r );
+				var path			= $"Assets/Resources/Fun.Flexy/AssetRefs/{assetAddress}.asset";
+				
+				var rref			= AssetDatabase.LoadAssetAtPath<ResourceRef>( path );
+				
+				if( rref == null )
+				{
+					rref = ScriptableObject.CreateInstance<ResourceRef>( );
+					
+					try						{ AssetDatabase.CreateAsset( rref, path ); }
+					catch (Exception ex)	{ Debug.LogException( ex ); }
+				}
+				
+				rref.Ref = r;
+				EditorUtility.SetDirty( rref );
 				
 				if( r is SceneAsset sa )
 				{
@@ -52,14 +64,13 @@ public class ResourcesPopulateRefs : IPipelineTask
 						EditorBuildSettings.scenes = scenes.ToArray( );
 					}
 				}
-					
-				try						{ AssetDatabase.CreateAsset( rref, $"Assets/Resources/Fun.Flexy/AssetRefs/{assetAddress}.asset" ); }
-				catch (Exception ex)	{ Debug.LogException( ex ); }
 			}
 		}
 		finally
 		{
 			AssetDatabase.StopAssetEditing( );
+			AssetDatabase.SaveAssets( );
+			AssetDatabase.Refresh( );
 		}
 	}
 }

@@ -8,8 +8,9 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
-- 
-
+- Fixed multiselect support
+- Fixed populate resource refs spawn errors in console
+- Fixed auto run pipeline can not find pipeline
 
 ## [5.0.0-pre.1] - 2025-02-23
 
@@ -37,6 +38,7 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   - Task DistinctRefs
   - Task RunPipeline - Run sub pipeline
   - Task ResourcesPopulateRefs - Make refs work in runtime
+  - Task RunOnBuildPreprocess - Autorun pipeline when you press build
 - Added RefsCollector - Utility to collect refs from object fields
 - Added AssetLoader_Resources - Default AssetLoader backend
 
