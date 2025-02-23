@@ -80,4 +80,14 @@ namespace Flexy.AssetRefs.Pipelines
 	{
 		public void Run( Pipeline ppl, Context ctx );
 	}
+	
+	#if UNITY_EDITOR
+	[MovedFrom(true, sourceNamespace:"Flexy.AssetRefs")]
+	public class RunPipeline : IPipelineTask
+	{
+		[SerializeField]	Pipeline	_pipeline = null!;
+
+		public void Run( Pipeline ppln, Context ctx ) => _pipeline.RunTasks(ctx);
+	}
+	#endif
 }

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Flexy.AssetRefs.Extra;
-using UnityEditor;
-using UnityEngine;
-using Object = UnityEngine.Object;
-
-namespace Flexy.AssetRefs.Editor
+﻿namespace Flexy.AssetRefs.Editor
 {
 	[CustomPropertyDrawer(typeof(SceneRef))]
 	public class SceneRefDrawer : PropertyDrawer

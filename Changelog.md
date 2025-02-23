@@ -34,13 +34,13 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Added Pipeline - Flexible generic task processor. Used to prepare asset refs for build
   - Task AddRefsDirect
   - Task AddRefsFromDirectory
-  - Task MakeSpritesInAtlasesUncompressed
   - Task DistinctRefs
   - Task RunPipeline - Run sub pipeline
+  - Task ResourcesPopulateRefs - Make refs work in runtime
 - Added RefsCollector - Utility to collect refs from object fields
 - Added AssetLoader_Resources - Default AssetLoader backend
 
-## [ . . ]
+## [ . . . ]
 
 ## [0.0.1] - 2018-08-11
 

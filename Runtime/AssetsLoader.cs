@@ -12,17 +12,16 @@ public abstract class AssetsLoader
 	
 #if UNITY_EDITOR
 	private static	Boolean?		_runtimeBehaviorEnabled;
-	public static	Boolean			RuntimeBehaviorEnabled
+	public static	Boolean			RuntimeBehaviorEnabled		
 	{
 		get => _runtimeBehaviorEnabled ??= UnityEditor.EditorPrefs.GetBool( Application.productName + "=>Flexy/AssetRefs/RuntimeBehaviorEnabled" ); 
 		set => UnityEditor.EditorPrefs.SetBool( Application.productName + "=>Flexy/AssetRefs/RuntimeBehaviorEnabled", (_runtimeBehaviorEnabled = value).Value );
 	}
-	private static	Boolean			AllowDirectAccessInEditor => !RuntimeBehaviorEnabled; 
 #endif
 	
-	public static event	Action<Scene,Scene>?	NewSceneCreatedAndLoadingStarted; 
+	public static event		Action<Scene,Scene>?	NewSceneCreatedAndLoadingStarted; 
 	
-	public		 			UniTask<T?>			LoadAssetAsync<T>			( AssetRef @ref ) where T:Object		
+	public		 			UniTask<T?>				LoadAssetAsync<T>			( AssetRef @ref ) where T:Object		
 	{
 		if ( @ref.IsNone )
 			return UniTask.FromResult<T?>( null );
@@ -30,7 +29,7 @@ public abstract class AssetsLoader
 		try
 		{
 #if UNITY_EDITOR
-			if ( AllowDirectAccessInEditor || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
+			if ( !RuntimeBehaviorEnabled || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
 			{
 				return EditorLoadAsync( @ref );
 				static async UniTask<T?> EditorLoadAsync		( AssetRef @ref )
@@ -52,7 +51,7 @@ public abstract class AssetsLoader
 			return UniTask.FromResult<T?>(null);
 		}
 	}
-	public 					T?					LoadAssetSync<T>			( AssetRef @ref ) where T:Object		
+	public 					T?						LoadAssetSync<T>			( AssetRef @ref ) where T:Object		
 	{
 		if ( @ref.IsNone )
 			return null;
@@ -60,7 +59,7 @@ public abstract class AssetsLoader
 		try
 		{
 #if UNITY_EDITOR
-			if ( AllowDirectAccessInEditor || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
+			if ( !RuntimeBehaviorEnabled || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
 				return (T?)EditorLoadAsset( @ref, typeof(T) );
 #endif
 			
@@ -72,10 +71,10 @@ public abstract class AssetsLoader
 			return null;
 		}
 	}
-	public					String?				GetSceneName				( SceneRef @ref )						
+	public					String?					GetSceneName				( SceneRef @ref )						
 	{
 #if UNITY_EDITOR			
-		if( AllowDirectAccessInEditor || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
+		if( !RuntimeBehaviorEnabled || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
 		{
 			var path			= UnityEditor.AssetDatabase.GUIDToAssetPath( @ref.Uid.ToGUID( ) );
 			return System.IO.Path.GetFileNameWithoutExtension( path );
@@ -84,12 +83,12 @@ public abstract class AssetsLoader
 		
 		return GetSceneName_Impl( @ref );
 	}
-	public					SceneTask			LoadSceneAsync				( SceneRef @ref, SceneTask.Parameters p, GameObject context )	
+	public					LoadSceneTask			LoadSceneAsync				( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context )	
 	{
-		SceneTask sceneTask;
+		LoadSceneTask sceneTask;
 		
 #if UNITY_EDITOR			
-		if( AllowDirectAccessInEditor || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
+		if( !RuntimeBehaviorEnabled || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
 		{
 			var path			= UnityEditor.AssetDatabase.GUIDToAssetPath( @ref.Uid.ToGUID( ) );
 			var sceneLoadOp		= UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode( path, new( p.LoadMode, p.PhysicsMode ) );
@@ -97,7 +96,7 @@ public abstract class AssetsLoader
 			sceneLoadOp.allowSceneActivation = p.ActivateOnLoad;
 			var scene			= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
 
-			var info			= SceneTask.GetSceneData( );
+			var info			= LoadSceneTask.RentSceneLoadData( );
 			info.Scene			= scene;
 			info.DelaySceneActivation = !p.ActivateOnLoad;
 		
@@ -109,112 +108,25 @@ public abstract class AssetsLoader
 			sceneTask	= LoadSceneAsync_Impl( @ref, p );
 		}
 		
-		WaitSceneLoad( sceneTask, context ).Forget( );
+		WaitSceneLoadStart( sceneTask, context ).Forget( );
 		
 		return sceneTask;
 	}
-	public					SceneTask			LoadDummyScene				( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects )
+	public					LoadSceneTask			LoadDummyScene				( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects )
 	{
 		var task = LoadDummyScene_Impl( mode, unloadOptions );
 		
-		WaitSceneLoad( task, ctx ).Forget( );
+		WaitSceneLoadStart( task, ctx ).Forget( );
 		
 		return task;
 	}
 	
-	protected static async UniTask<Scene>		SceneLoadWaitImpl			( AsyncOperation ao, SceneTask.LoadData info )	
-	{
-		try
-		{
-			while ( !ao.isDone && ( ao.allowSceneActivation || !Mathf.Approximately( ao.progress, .9f ) ) )
-			{
-				await UniTask.DelayFrame( 1 );
-				info.Progress = ao.progress;
-			}
-					
-			info.Progress	= 1;
-			await UniTask.DelayFrame( 1 );
-			
-			while ( !ao.allowSceneActivation && info.DelaySceneActivation )
-				await UniTask.DelayFrame( 1 );
-
-			ao.allowSceneActivation = true;
-			
-			return info.Scene;
-		}
-		finally
-		{
-			info.Release( ).Forget( );
-		}
-	}
-	
-	protected abstract		UniTask<T?>			LoadAssetAsync_Impl<T>		( AssetRef @ref ) where T:Object;
-	protected abstract		T?					LoadAssetSync_Impl<T>		( AssetRef @ref ) where T:Object;
-	protected abstract		String?				GetSceneName_Impl			( SceneRef @ref );
-	protected abstract 		SceneTask			LoadSceneAsync_Impl			( SceneRef @ref, SceneTask.Parameters p );
-	protected virtual		SceneTask			LoadDummyScene_Impl			( LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects )
-	{
-		var data			= SceneTask.GetSceneData( );
-		data.Scene			= default;
-		
-		return new( LoadDummyScene_Internal( data, mode, unloadOptions ), data );
-		
-		static async UniTask<Scene>  LoadDummyScene_Internal( SceneTask.LoadData data, LoadSceneMode mode, UnloadSceneOptions unloadOptions )
-		{
-		try
-		{
-			AsyncOperation? ao = null;
-				
-			List<Scene>? scenesToUnload = null; 
-				
-			if( mode == LoadSceneMode.Single )
-			{
-				scenesToUnload = new( );
-				var count = SceneManager.loadedSceneCount;
-				for (var i = count - 1; i >= 0; i--)
-					scenesToUnload.Add( SceneManager.GetSceneAt( i ) );
-				}
-		
-			var dummy = SceneManager.CreateScene( "Dummy" );
-		
-			data.Scene		= dummy;
-				
-			await UniTask.NextFrame( );
-		
-			SceneManager.SetActiveScene( dummy );
-		
-			var dummyCam = new GameObject( "DummyCam", typeof(Camera) );
-				
-			data.Progress = 0.9f;
-				
-			if( scenesToUnload != null )
-			{
-				foreach (var scn in scenesToUnload )
-				{
-					if (ao != null) await ao.ToUniTask( );
-					ao = SceneManager.UnloadSceneAsync( scn, unloadOptions );
-				}
-			}
-		
-			if (ao != null) await ao.ToUniTask( );	
-			
-			data.Progress = 1f;
-			
-			return dummy;
-		}
-		finally
-		{
-			data.Release( ).Forget( );
-	}
-	}
-	}
-	
-	public	static	T?				EditorLoadAsset<T>			( AssetRef<T> address ) where T : Object
+	public	static			T?						EditorLoadAsset<T>			( AssetRef<T> address ) where T : Object
 	{
 		var asset = EditorLoadAsset				( address, typeof(T) );
 		return (T?)asset;
 	}
-	public	static	Object?			EditorLoadAsset				( AssetRef address, Type type )			
+	public	static			Object?					EditorLoadAsset				( AssetRef address, Type type )			
 	{
 #if UNITY_EDITOR
 		
@@ -244,7 +156,7 @@ public abstract class AssetsLoader
 		
 		return null;
 	}
-	public	static	AssetRef		EditorGetAssetAddress		( Object asset )						
+	public	static			AssetRef				EditorGetAssetAddress		( Object asset )						
 	{
 		if( !asset )
 			return default;
@@ -262,15 +174,106 @@ public abstract class AssetsLoader
 		return default;
 	}
 	
-	private static async	UniTask WaitSceneLoad ( SceneTask sceneTask, GameObject ctx )		
+	// Virtual interface for loding customisation
+	protected abstract		UniTask<T?>				LoadAssetAsync_Impl<T>		( AssetRef @ref ) where T:Object;
+	protected abstract		T?						LoadAssetSync_Impl<T>		( AssetRef @ref ) where T:Object;
+	protected abstract		String?					GetSceneName_Impl			( SceneRef @ref );
+	protected abstract 		LoadSceneTask			LoadSceneAsync_Impl			( SceneRef @ref, LoadSceneTask.Parameters p );
+	protected virtual		LoadSceneTask			LoadDummyScene_Impl			( LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects )
+	{
+		var data			= LoadSceneTask.RentSceneLoadData( );
+		data.Scene			= default;
+		
+		return new( LoadDummyScene_Internal( data, mode, unloadOptions ), data );
+		
+		static async UniTask<Scene>  LoadDummyScene_Internal( LoadSceneTask.LoadData data, LoadSceneMode mode, UnloadSceneOptions unloadOptions )
 		{
-			while( !sceneTask.IsDone && sceneTask.Scene == default )
-			await UniTask.Yield( PlayerLoopTiming.LastPreLateUpdate );
+			try
+			{
+				AsyncOperation?	ao				= null;
+				List<Scene>?	scenesToUnload	= null; 
+					
+				if( mode == LoadSceneMode.Single )
+				{
+					scenesToUnload = new( );
+					var count = SceneManager.loadedSceneCount;
+					for (var i = count - 1; i >= 0; i--)
+						scenesToUnload.Add( SceneManager.GetSceneAt( i ) );
+				}
 			
-			if( sceneTask.Scene != default )
+				var dummy	= SceneManager.CreateScene( "Dummy" );
+				data.Scene	= dummy;
+					
+				await UniTask.NextFrame( );
+			
+				SceneManager.SetActiveScene( dummy );
+			
+				var dummyCam = new GameObject( "DummyCam", typeof(Camera), typeof(AudioListener) );
+					
+				data.Progress = 0.9f;
+					
+				if( scenesToUnload != null )
+				{
+					foreach ( var scn in scenesToUnload )
+					{
+						if ( ao != null ) 
+							await ao.ToUniTask( );
+						
+						ao = SceneManager.UnloadSceneAsync( scn, unloadOptions );
+					}
+				}
+			
+				if ( ao != null ) 
+					await ao.ToUniTask( );	
+				
+				data.Progress = 1f;
+				
+				return dummy;
+			}
+			finally
+			{
+				data.Release( ).Forget( );
+			}
+		}
+	}
+	
+	protected static async	UniTask<Scene>			SceneLoadWaitImpl			( AsyncOperation ao, LoadSceneTask.LoadData loadData )	
+	{
+		try
+		{
+			while ( !ao.isDone && ( ao.allowSceneActivation || !Mathf.Approximately( ao.progress, .9f ) ) )
+			{
+				await UniTask.NextFrame( );
+				loadData.Progress = ao.progress;
+			}
+					
+			loadData.Progress	= 1;
+			
+			if ( !ao.allowSceneActivation )
+			{
+				while ( loadData.DelaySceneActivation )
+					await UniTask.NextFrame( );
+
+				ao.allowSceneActivation = true;
+				await UniTask.NextFrame( );
+			}
+			
+			return loadData.Scene;
+		}
+		finally
+		{
+			loadData.Release( ).Forget( );
+		}
+	}
+	protected static async	UniTask					WaitSceneLoadStart			( LoadSceneTask sceneTask, GameObject ctx )				
+	{
+		while( !sceneTask.IsDone && sceneTask.Scene == default )
+			await UniTask.Yield( PlayerLoopTiming.LastPreLateUpdate );
+		
+		if( sceneTask.Scene != default )
 			try						{ NewSceneCreatedAndLoadingStarted?.Invoke( ctx.scene, sceneTask.Scene );	}			
 			catch( Exception ex )	{ Debug.LogException( ex );													}
-		}
+	}
 		
 	public static class Editor
 	{
@@ -283,17 +286,40 @@ public abstract class AssetsLoader
 #endif
 	}
 }
-	
-public readonly struct LoadTask<T>
+
+public static class LoadAssetTask
 {
-	public LoadTask( UniTask<T> task, LoadTask.LoadData? data )
+	public static	LoadAssetTask<T>		FromResult<T>	( T result )	=> new ( UniTask.FromResult( result ), null );
+	
+	public class LoadData: IProgress<Single>
+	{
+		public Single			Progress;
+		public Boolean			IsCanceled;
+		public Boolean			IsDone => Progress >= 1.0;
+		
+		public async UniTask	Release			( )		
+		{
+			await UniTask.DelayFrame( 10 );
+
+			Progress	= default;
+			IsCanceled	= default;
+		
+			GenericPool<LoadData>.Release( this );
+		}
+		public void				Report			( Single value ) => Progress = value;
+	}
+}
+
+public readonly struct LoadAssetTask<T>
+{
+	public LoadAssetTask( UniTask<T> task, LoadAssetTask.LoadData? data )
 	{
 		_loadTask	= task;
 		_loadData	= data;
 	}
 
-	private readonly UniTask<T>				_loadTask;
-	private readonly LoadTask.LoadData?		_loadData;
+	private readonly UniTask<T>					_loadTask;
+	private readonly LoadAssetTask.LoadData?	_loadData;
 	
 	public Single				Progress		=> IsDone ? 1 : _loadData?.Progress ?? 0;
 	public Boolean				IsDone			=> _loadTask.Status != UniTaskStatus.Pending;
@@ -309,16 +335,16 @@ public readonly struct LoadTask<T>
 	}
 }
 	
-public readonly struct SceneTask
+public readonly struct LoadSceneTask
 {
-	public SceneTask( UniTask<Scene> t, LoadData info )
+	public LoadSceneTask( UniTask<Scene> t, LoadData data )
 	{
 		_loadTask	= t;
-		_loadData		= info;
+		_loadData	= data;
 	}
 
 	private readonly UniTask<Scene>		_loadTask;
-	private readonly LoadData		_loadData;
+	private readonly LoadData			_loadData;
 	
 	public Single			Progress	=> IsDone ? 1 : _loadData?.Progress ?? 0;
 	public Scene			Scene		=> _loadData?.Scene ?? default;
@@ -328,20 +354,17 @@ public readonly struct SceneTask
 	public UniTask<Scene>.Awaiter	GetAwaiter	( ) => _loadTask.GetAwaiter( );
 	public void						Forget		( )	=> _loadTask.Forget( );
 
-	public async UniTask<Scene>		WaitForSceneLoadStart( )
+	public async	UniTask<Scene>	WaitForSceneLoadStart	( )							
 	{
 		while ( !IsDone & _loadData.Scene == default )
 			await UniTask.Yield( PlayerLoopTiming.LastPostLateUpdate );
 		
 		return _loadData.Scene;
 	}
+	public			UniTask			ContinueWith			( Action<Scene> action )	=> _loadTask.ContinueWith( action );
+	public			void			AllowSceneActivation	( )							=> _loadData.DelaySceneActivation = false;
 	
-	public static LoadData GetSceneData( ) => GenericPool<LoadData>.Get();
-	
-	public record struct Parameters( LoadSceneMode LoadMode = LoadSceneMode.Additive, LocalPhysicsMode PhysicsMode = LocalPhysicsMode.None, Int32 Priority = 100, Boolean ActivateOnLoad = true ) {};
-
-	public UniTask	ContinueWith			( Action<Scene> action )	=> _loadTask.ContinueWith( action );
-	public void		AllowSceneActivation	( )							=> _loadData.DelaySceneActivation = false;
+	public static LoadData RentSceneLoadData( ) => GenericPool<LoadData>.Get();
 	
 	public class LoadData: IProgress<Single>
 	{
@@ -363,27 +386,12 @@ public readonly struct SceneTask
 		}
 		public void				Report			( Single value ) => Progress = value;
 	}
-}
 	
-public static class LoadTask
-{
-	public static	LoadTask<T>		FromResult<T>	( T result )	=> new ( UniTask.FromResult( result ), null );
-	
-	public class LoadData: IProgress<Single>
-	{
-		public Single			Progress;
-		public Boolean			IsCanceled;
-		public Boolean			IsDone => Progress >= 1.0;
-		
-		public async UniTask	Release			( )		
-		{
-			await UniTask.DelayFrame( 10 );
-
-			Progress	= default;
-			IsCanceled	= default;
-		
-			GenericPool<LoadData>.Release( this );
-		}
-		public void				Report			( Single value ) => Progress = value;
-	}
+	public record struct Parameters
+	( 
+		LoadSceneMode		LoadMode		= LoadSceneMode.Additive, 
+		LocalPhysicsMode	PhysicsMode		= LocalPhysicsMode.None, 
+		Int32				Priority		= 100, 
+		Boolean				ActivateOnLoad	= true 
+	);
 }

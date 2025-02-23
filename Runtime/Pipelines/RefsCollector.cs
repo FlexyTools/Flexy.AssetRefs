@@ -1,9 +1,13 @@
-﻿#if UNITY_EDITOR
-using System.Collections;
+﻿using System.Collections;
 using System.Linq;
 using System.Reflection;
 
 namespace Flexy.AssetRefs.Pipelines;
+
+public interface IAssetRefsSource	
+{
+	public List<Object> CollectAssets( ); 
+}
 
 public static class		RefsCollector		 
 {
@@ -76,4 +80,3 @@ public static class		RefsCollector
 		return result;
 	}
 }
-#endif
