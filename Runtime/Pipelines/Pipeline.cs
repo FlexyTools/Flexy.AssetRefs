@@ -6,7 +6,7 @@ namespace Flexy.AssetRefs.Pipelines
 		public Boolean			MasterEnabled;
         public EnabledTask[]	EnabledTasks	= {};
 
-		public			void			RunTasks	( )
+		public			void			RunTasks	( )					
 		{
 			if ( !MasterEnabled )
 				return;
@@ -24,7 +24,7 @@ namespace Flexy.AssetRefs.Pipelines
 				GenericPool<Context>.Release( ctx );
 			}
 		}
-		public			void			RunTasks	( Context ctx )
+		public			void			RunTasks	( Context ctx )		
 		{
 			if ( !MasterEnabled || EnabledTasks.Length <= 0 )
 				return;
@@ -63,7 +63,7 @@ namespace Flexy.AssetRefs.Pipelines
 		[Serializable]
 		public struct EnabledTask
 		{
-			public Boolean		Enabled;
+			public Boolean			Enabled;
 			[SerializeReference]
 			public IPipelineTask?	Task;
 		}

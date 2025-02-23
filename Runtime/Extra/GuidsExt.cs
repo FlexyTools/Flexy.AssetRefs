@@ -8,8 +8,8 @@ namespace Flexy.AssetRefs.Extra;
 
 public static class GuidsExt
 {
-	[MethodImpl(256)] public static Hash128		ToHash	( this GUID g )		=> new GuidHashUnion( g ).SwitchBits( ).Hash;
-	[MethodImpl(256)] public static GUID		ToGUID	( this Hash128 h )	=> new GuidHashUnion( h ).SwitchBits( ).Guid;
+	[MethodImpl(256)] public static Hash128		ToHash	( this GUID guid )		=> new GuidHashUnion( guid ).SwitchBits( ).Hash;
+	[MethodImpl(256)] public static GUID		ToGUID	( this Hash128 hash )	=> new GuidHashUnion( hash ).SwitchBits( ).Guid;
 		
 	[StructLayout(LayoutKind.Explicit)]
 	private ref struct GuidHashUnion
