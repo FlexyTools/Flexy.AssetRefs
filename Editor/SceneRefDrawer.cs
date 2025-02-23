@@ -29,14 +29,12 @@
 			
 			var newobj		= EditorGUI.ObjectField( position, label, assetData.asset, typeof(SceneAsset), false );
 
-			if( EditorGUI.EndChangeCheck( ) && newobj != assetData.asset )
+			if( EditorGUI.EndChangeCheck( ) )
 			{
 				_assets[property.propertyPath] = (assetRef, newobj);
 				
-				if( newobj == null )
-					uidProp.hash128Value = default;
-				else
-					uidProp.hash128Value = new GUID( AssetDatabase.AssetPathToGUID( AssetDatabase.GetAssetPath( newobj ) ) ).ToHash( );
+				var @ref = AssetsLoader.EditorGetAssetAddress( newobj );
+				uidProp.hash128Value = @ref.Uid;
 			}
 			
 			EditorGUI.EndProperty( );

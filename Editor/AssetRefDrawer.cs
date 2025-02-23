@@ -13,23 +13,25 @@ namespace Flexy.AssetRefs.Editor
 		
 		public override		void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )	
 		{
-		    if (property.serializedObject.isEditingMultipleObjects)
-		    {
-		        EditorGUI.BeginProperty(position, label, property);
-		        var fieldRect = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
-		        GUI.Box(fieldRect, "—", EditorStyles.textField);
-		        EditorGUI.EndProperty();
-		        return;
-		    }	
+			OnGUI( position, property, label, GetRefType( fieldInfo ) );
+		}
+		public override		Single	GetPropertyHeight	( SerializedProperty property, GUIContent label )					
+		{
+			var addressProp		= property.FindPropertyRelative( "_uid" );
 			
+			if ( DrawPreview( addressProp, fieldInfo ) && !ArrayTableDrawer.DrawingInTableGUI )
+				return EditorGUI.GetPropertyHeight( addressProp, label, true ) + ImageHeight + 10;
+			
+			return EditorGUI.GetPropertyHeight( addressProp, label, true );
+		}
+		
+		protected			void	OnGUI				( Rect position, SerializedProperty property, GUIContent label, Type type )
+		{	
 			label				= EditorGUI.BeginProperty( position, label, property );
 			
 			var uidProp			= property.FindPropertyRelative( "_uid" );
 			var subIdProp		= property.FindPropertyRelative( "_subId" );
 			
-			// var attr			= fieldInfo.GetCustomAttribute<AssetTypeAttribute>( true );
-			// var type			= attr != null ? attr.AssetType : GetRefType( fieldInfo );
-			var type			= GetRefType( fieldInfo );
 			var assetRef		= new AssetRef( uidProp.hash128Value, subIdProp.longValue );
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
@@ -46,26 +48,27 @@ namespace Flexy.AssetRefs.Editor
 			if( drawPreview & isInline )
 				position.xMin	+= 80;
 			
-			//EditorGUI.BeginChangeCheck( );
+			EditorGUI.BeginChangeCheck( );
 			var newobj		= EditorGUI.ObjectField( position, label, assetData.asset, type, false );
+			
+			var isChanged = EditorGUI.EndChangeCheck( );
 			
 			if (newobj is SceneAsset)
 			{
-				Debug.LogError		( $"[AssetRefDrawer] - OnGUI: Asset type (Scene) not able for AssetRef, use AssetRefScene" );
+				Debug.LogError		( $"[AssetRefDrawer] - OnGUI: Asset type (Scene) not able for AssetRef, use SceneRef" );
 				uidProp.hash128Value = default;
 				subIdProp.longValue = default;
 				EditorGUI.EndProperty( );
 				return;
 			}
 			
-			if( newobj )
+			if( isChanged )
 			{
 				var @ref		= AssetsLoader.EditorGetAssetAddress( newobj );
 				
-				uidProp.hash128Value	= @ref.Uid; 
-				subIdProp.longValue		= @ref.SubId;
-				
-				_assets[property.propertyPath] = ( @ref, newobj );
+				uidProp.hash128Value			= @ref.Uid; 
+				subIdProp.longValue				= @ref.SubId;
+				_assets[property.propertyPath]	= ( @ref, newobj );
 				
 				if( drawPreview )
 				{
@@ -104,26 +107,10 @@ namespace Flexy.AssetRefs.Editor
 					}
 				}
 			}
-			else
-			{
-				uidProp.hash128Value			= default; 
-				subIdProp.longValue				= default;
-				_assets[property.propertyPath]	= default;
-			}
 			
 			EditorGUI.EndProperty( );
 		}
-		public override		Single	GetPropertyHeight	( SerializedProperty property, GUIContent label )					
-		{
-			var addressProp		= property.FindPropertyRelative( "_uid" );
-			
-			if ( DrawPreview( addressProp, fieldInfo ) && !ArrayTableDrawer.DrawingInTableGUI )
-				return EditorGUI.GetPropertyHeight( addressProp, label, true ) + ImageHeight + 10;
-			
-			return EditorGUI.GetPropertyHeight( addressProp, label, true );
-		}
-		
-		private static		void	DrawTexturePreview	( Rect position, Sprite sprite )						
+		protected static	void	DrawTexturePreview	( Rect position, Sprite sprite )									
         {
             var fullSize	= new Vector2(sprite.texture.width, sprite.texture.height);
             var size		= new Vector2(sprite.textureRect.width, sprite.textureRect.height);
@@ -146,9 +133,9 @@ namespace Flexy.AssetRefs.Editor
  
             GUI.DrawTextureWithTexCoords(position, sprite.texture, coords);
         }
-		private static		Type	GetRefType			( FieldInfo fieldInfo )									
+		protected static	Type	GetRefType			( FieldInfo fieldInfo )												
 		{
-			var type = fieldInfo.FieldType;
+			var type = typeof(Object);
 			
 			if			( type.IsArray )															type = fieldInfo.FieldType.GetElementType()!;
 			else if		( type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>) )	type = fieldInfo.FieldType.GetGenericArguments()[0];
@@ -158,7 +145,7 @@ namespace Flexy.AssetRefs.Editor
 			
 			return type;
 		}
-		private static		Boolean	DrawPreview			( SerializedProperty property, FieldInfo fieldInfo )	
+		protected static	Boolean	DrawPreview			( SerializedProperty property, FieldInfo fieldInfo )				
 		{
 			var type = GetRefType( fieldInfo );
 			
