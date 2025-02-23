@@ -27,6 +27,7 @@ public struct AssetRef<T> : IRefLike, ISerializeAsString, IEquatable<AssetRef<T>
 	public			Hash128		Uid			=> _uid;
 	public			Int64		SubId		=> _subId;
 	public			Boolean		IsNone		=> this == default;
+	public static	AssetRef	None		=> default;
 	public			AssetRef	Raw			=> this;
 	
 	public override Int32		GetHashCode		( )										=> _uid.GetHashCode() ^ _subId.GetHashCode( );
@@ -53,6 +54,7 @@ public struct AssetRef : IRefLike, IEquatable<AssetRef>
 	public			Hash128		Uid			=> _uid;
 	public			Int64		SubId		=> _subId;
 	public			Boolean		IsNone		=> _uid == default;
+	public static	AssetRef	None		=> default;
 
 	public override	Int32		GetHashCode		( )									=> _uid.GetHashCode() ^ _subId.GetHashCode( );
 	public override	Boolean		Equals			( System.Object obj )				=> obj is AssetRef ar && this == ar;
