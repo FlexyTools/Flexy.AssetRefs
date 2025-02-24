@@ -1,6 +1,5 @@
-﻿# **Flexy.AssetRefs**
-
----
+﻿**Flexy.AssetRefs**
+===================
 
 Load assets **on demand** without Addressables and Bundles  
 Almost **zero** editor setup!  

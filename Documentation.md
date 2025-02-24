@@ -1,6 +1,5 @@
 **Flexy.AssetRefs Docs**
 ==================== 
----
 
 Main Concepts
 --------
