@@ -43,7 +43,9 @@ more complex systems later.
   - Looks like regular reference in inspector
   - Does not clutter GO inspector
   - Only one simple file in project to collect necessary data for runtime
-   
+
+See [Docs and Use Cases](Documentation.md) for usage samples   
+
 **Flexy.AssetRefs is**
 -----------------------
 **Modular and Simple to use:** we separate the reference system from complex asset bundles bundling and downloading. 
