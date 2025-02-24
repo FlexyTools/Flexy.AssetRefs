@@ -55,11 +55,11 @@ this is where **magic** happens :)
 You need to add at least one pipeline asset to project through Create Menu > Flexy > AssetRefs > Pipeline   
 Simple working pipeline must consist of Tasks (in order):
 
->- **RunOnBuildPreprocess** - it will launch this pipeline as PreBuild step (only if it first task)
->- Few Tasks that collects refs to objects
->  - **AddRefsDirect** - add references to objects directly (how it useful later in doc)  
->  - **AddRefsFromDirectory** - with this you can collect all sprites form directory with subdirectories
->- **ResourcesPopulateRefs** - will make collected refs available for loading in runtime (without touching source assets) 
+- **RunOnBuildPreprocess** - it will launch this pipeline as PreBuild step (only if it first task)
+- Few Tasks that collects refs to objects
+  - **AddRefsDirect** - add references to objects directly (how it useful later in doc)  
+  - **AddRefsFromDirectory** - with this you can collect all sprites form directory with subdirectories
+- **ResourcesPopulateRefs** - will make collected refs available for loading in runtime (without touching source assets) 
 
 With **correct** pipeline your refs will work in editor and in build seamlessly!
 
