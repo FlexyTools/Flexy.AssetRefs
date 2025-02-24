@@ -57,6 +57,7 @@ their own loading methods with any indirections, additional checks or better kno
 and can be replaced with your own implementation. It is only 5 virtual methods to implement 
 
 **Already Used in Games like:** Sniper League, Animals Happy Run, Cyberstrike
+**In production on platforms:** iOS, Android, Windows, Linux, Mac
 
 **Technical details**
 ---------------------
@@ -67,6 +68,7 @@ and can be replaced with your own implementation. It is only 5 virtual methods t
 - UniTask based async loading 
 - Native C# Nullability annotations
 - C# 10
+- Fast Enter Play Mode support
 
 [Documentation](Documentation.md)
 
