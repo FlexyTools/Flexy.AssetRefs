@@ -12,7 +12,6 @@ public struct SceneRef : IRefLike, ISerializeAsString, IEquatable<SceneRef>
 	public			Boolean			IsNone				=> this == default;
 	public static	SceneRef		None				=> default;
 	public			AssetRef		Raw					=> new( _uid, 0 );
-	public			String?			SceneName			=> AssetRef.AssetsLoader.GetSceneName( this );
 
 	public override Int32			GetHashCode			( )									=> _uid.GetHashCode();
 	public override	Boolean			Equals				( System.Object obj )				=> obj is SceneRef sr && this == sr;
@@ -23,5 +22,5 @@ public struct SceneRef : IRefLike, ISerializeAsString, IEquatable<SceneRef>
 	public override	String			ToString			( )					=> _uid == default ? String.Empty : _uid.ToString( );
 	public			void			FromString			( String address )	=> _uid = String.IsNullOrWhiteSpace( address ) ? default : Hash128.Parse( address );
 
-	public static	LoadSceneTask		LoadDummyScene		( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects ) => AssetRef.AssetsLoader.LoadDummyScene( ctx, mode, unloadOptions );
+	public static	LoadSceneTask	LoadDummySceneAsync	( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects ) => AssetRef.AssetsLoader.LoadDummyScene( ctx, mode, unloadOptions );
 }

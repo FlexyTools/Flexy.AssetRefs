@@ -324,6 +324,7 @@ public readonly struct LoadAssetTask<T>
 	public Single				Progress		=> IsDone ? 1 : _loadData?.Progress ?? 0;
 	public Boolean				IsDone			=> _loadTask.Status != UniTaskStatus.Pending;
 	public Boolean				IsSuccess		=> _loadTask.Status == UniTaskStatus.Succeeded;
+	public UniTaskStatus		Status			=> _loadTask.Status;
 	
 	public T					GetResult		( ) => GetAwaiter( ).GetResult( );
 	public UniTask<T>.Awaiter	GetAwaiter		( ) => _loadTask.GetAwaiter( );
@@ -351,8 +352,8 @@ public readonly struct LoadSceneTask
 	public Boolean			IsDone		=> _loadTask.Status != UniTaskStatus.Pending;
 	public UniTaskStatus	Status		=> _loadTask.Status;
 	
-	public UniTask<Scene>.Awaiter	GetAwaiter	( ) => _loadTask.GetAwaiter( );
-	public void						Forget		( )	=> _loadTask.Forget( );
+	public UniTask<Scene>.Awaiter	GetAwaiter				( ) => _loadTask.GetAwaiter( );
+	public void						Forget					( )	=> _loadTask.Forget( );
 
 	public async	UniTask<Scene>	WaitForSceneLoadStart	( )							
 	{

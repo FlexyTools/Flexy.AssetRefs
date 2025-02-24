@@ -20,10 +20,7 @@ public class RunOnBuildPreprocess : IPipelineTask, IPreprocessBuildWithReport
 		
 				AssetDatabase.SaveAssets( );
 				AssetDatabase.Refresh( );
-				
-				return;
 			}
-			
 		}
 	}
 

@@ -112,11 +112,9 @@ namespace Flexy.AssetRefs.Editor
 		private static Type[]		_types	= null!;
 		private static String[]		_names	= null!;
 	
-		public override Boolean CanCacheInspectorGUI(SerializedProperty property) => false;
-
-		public override VisualElement CreatePropertyGUI( SerializedProperty property )
+		public override Boolean			CanCacheInspectorGUI	( SerializedProperty property )		=> false;
+		public override VisualElement	CreatePropertyGUI		( SerializedProperty property )		
 		{
-			//var enabledProp = property.FindPropertyRelative("Enabled");
 			var taskProp	= property.FindPropertyRelative("Task");
 			
 			// ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
@@ -128,7 +126,7 @@ namespace Flexy.AssetRefs.Editor
 
 			var rootVe				= new VisualElement( ){ style = { flexDirection = FlexDirection.Row } };
 			var enabledVertical		= new VisualElement( );
-			var enabledCheckbox		= new Toggle(){bindingPath = "Enabled", style = { marginLeft = -11, marginRight = 2}};
+			var enabledCheckbox		= new Toggle( ){bindingPath = "Enabled", style = { marginLeft = -11, marginRight = 2}};
 			var drawerImgui			= new IMGUIContainer( new PropDrawer( taskProp ).OnGui ){ style = { flexGrow = 1}};
 			
 			enabledVertical.Add( enabledCheckbox );
@@ -138,12 +136,12 @@ namespace Flexy.AssetRefs.Editor
 			return rootVe;
 		}
 	
-		private static Type			GetType				( String typename )		
+		private static	Type			GetType					( String typename )		
 		{
 			var parts		= typename.Split( ' ' );
 			return Type.GetType( $"{parts[1]}, {parts[0]}", false );
 		}
-		private static List<Type>	GetAssignableTypes	( Type type )			
+		private static	List<Type>		GetAssignableTypes		( Type type )			
 		{
 			var nonUnityTypes	= TypeCache.GetTypesDerivedFrom(type).Where(IsAssignableNonUnityType).ToList();
 			nonUnityTypes.Sort( (l, r) => String.Compare( l.FullName, r.FullName, StringComparison.Ordinal) );
@@ -158,14 +156,13 @@ namespace Flexy.AssetRefs.Editor
 
 		private class PropDrawer
 		{
-			public PropDrawer(  SerializedProperty prop ) { _prop = prop; }
+			public PropDrawer( SerializedProperty prop ) { _prop = prop; }
 			private readonly SerializedProperty _prop;
 			
-			public void OnGui( )
+			public	void	OnGui			( )		
 			{
 				try
 				{
-				
 					GUILayout.BeginHorizontal( );
 				
 					var property = _prop.Copy();
@@ -180,31 +177,17 @@ namespace Flexy.AssetRefs.Editor
 				
 					var val		= property.managedReferenceValue;
 					var name	= ObjectNames.NicifyVariableName( val?.GetType().Name ?? "None" );
-
-					// Debug.Log(property.CountInProperty());
-					// if( property.CountInProperty() == 2 )
-					// {
-					// 	EditorGUILayout.PrefixLabel( name, EditorStyles.boldLabel );
-					// 	DrawProperties( );
-					// 	return;
-					// }
-					// else
+					
+					GUILayout.Label( name, EditorStyles.boldLabel );
+					
+					GUILayout.FlexibleSpace( );
+					var newIndex = EditorGUILayout.Popup( 0, _names, GUILayout.Width( 35 ) );
+        			
+					if( newIndex != 0 )
 					{
-						//EditorGUILayout.PrefixLabel( name, null, EditorStyles.boldLabel );
-						GUILayout.Label( name, EditorStyles.boldLabel );
-					}
-				
-					//if( val == null )
-					{
-						GUILayout.FlexibleSpace( );
-						var newIndex = EditorGUILayout.Popup( 0, _names, GUILayout.Width( 35 ) );
-        				
-						if( newIndex != 0 )
-						{
-							property.managedReferenceValue = Activator.CreateInstance( _types[newIndex] );
-							property.serializedObject.ApplyModifiedProperties( );
-							property.serializedObject.Update( );
-						}
+						property.managedReferenceValue = Activator.CreateInstance( _types[newIndex] );
+						property.serializedObject.ApplyModifiedProperties( );
+						property.serializedObject.Update( );
 					}
 				}
 				catch
@@ -218,8 +201,7 @@ namespace Flexy.AssetRefs.Editor
 			
 				DrawProperties( );
 			}
-
-			private void DrawProperties( )
+			private	void	DrawProperties	( )		
 			{
 				//Properties
 				{

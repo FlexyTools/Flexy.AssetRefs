@@ -11,10 +11,10 @@ public interface IAssetRefsSource
 
 public static class		RefsCollector		 
 {
-	public static	List<Object>	CollectRefsDeep	( System.Object info, params String[]? ignoreFields )			
+	public static	List<Object>	CollectRefsDeep	( System.Object obj, params String[]? ignoreFields )			
 	{
 		var result	= new List<Object>( );
-		var type	= info.GetType(  );
+		var type	= obj.GetType(  );
 			
 		var fields	= new List<FieldInfo>( );
 
@@ -39,7 +39,7 @@ public static class		RefsCollector
 			
 		foreach (var field in fields)
 		{
-			var fieldObj = field.GetValue( info );
+			var fieldObj = field.GetValue( obj );
 
 			if (fieldObj == null)
 				continue;

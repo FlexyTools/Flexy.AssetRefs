@@ -3,12 +3,12 @@ namespace Flexy.AssetRefs.Pipelines
 	[CreateAssetMenu(fileName = "Pipeline.ppl.asset", menuName = "Flexy/AssetRefs/Pipeline")]
 	public class Pipeline : ScriptableObject
 	{
-		public Boolean			MasterEnabled;
+		public Boolean			DisablePipeline;
         public EnabledTask[]	EnabledTasks	= {};
 
 		public			void			RunTasks	( )					
 		{
-			if ( !MasterEnabled )
+			if ( DisablePipeline || EnabledTasks.Length <= 0 )
 				return;
 			
 			var ctx = GenericPool<Context>.Get( );
@@ -26,7 +26,7 @@ namespace Flexy.AssetRefs.Pipelines
 		}
 		public			void			RunTasks	( Context ctx )		
 		{
-			if ( !MasterEnabled || EnabledTasks.Length <= 0 )
+			if ( DisablePipeline || EnabledTasks.Length <= 0 )
 				return;
 
 			try

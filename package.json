@@ -4,6 +4,9 @@
   "version": "5.0.0",
   "unity": "2022.3",
   "description": "Flexy Asset Reference System. Very Simple Stupid asset reference system with ability to make other AssetReference systems work as backed of it",
+  "changelog": "Changelog.md",
+  "documentationUrl": "Documentation.md",
+  "licensesUrl": "https://github.com/FlexyTools/Flexy.AssetRefs/blob/5.0-main/LICENSE",
   "keywords": [
     "Asset",
     "Reference",
