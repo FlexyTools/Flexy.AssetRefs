@@ -15,8 +15,9 @@ Fast, extendable, production-proven and **Open Source!**
 Flexy.AssetRefs will help you to Load assets on demand from prototyping stage and add bundles 
 complexity only when game grows up! or **Never :)**
 
-Flexy.AssetRefs provides an efficient way to indirectly reference assets and scenes, offering a 
-cleaner alternative to Unity Addressables. It focuses solely on asset referencing, allowing full control over 
+Flexy.AssetRefs provides an efficient way to indirectly reference assets and scenes, offering 
+cleaner alternative to Unity Addressables.  
+It focuses solely on asset referencing, allowing full control over 
 how assets are loaded at runtime without enforcing specific bundling or loading methods.
 
 Designed for flexibility, Flexy.AssetRefs is easy to use from the prototyping stage. 

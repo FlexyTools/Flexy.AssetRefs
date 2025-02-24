@@ -3,22 +3,25 @@
   "displayName": "Flexy AssetRefs",
   "version": "5.0.0",
   "unity": "2022.3",
-  "description": "Flexy Asset Reference System. Very Simple Stupid asset reference system with ability to make other AssetReference systems work as backed of it",
+  "description": "Flexy.AssetRefs provides an efficient way to indirectly reference assets and scenes, offering cleaner alternative to Unity Addressables. Designed for flexibility, Flexy.AssetRefs is easy to use from the prototyping stage. It is well-suited for small projects where Addressables can create more issues than they solve and easily expand to more complex systems later.",
   "changelog": "Changelog.md",
   "documentationUrl": "Documentation.md",
   "licensesUrl": "https://github.com/FlexyTools/Flexy.AssetRefs/blob/5.0-main/LICENSE",
   "keywords": [
     "Asset",
     "Reference",
-	"AssetRef",
-	"Async",
-	"Resource",
-	"Load"
+    "AssetRef",
+    "Async",
+    "Resource",
+    "Load",
+    "On Demand",
+    "Addressable",
+    "Addressables"
   ],
-  "category": "Package, Resources, Asset Reference",
+  "category": "Tools, Utilities",
   "author": {
     "name": "Flexy Tools",
-    "email": "JesObertyukh@gmail.com",
+    "email": "flexy.fun.mail@gmail.com",
     "url": "https://github.com/FlexyTools/Flexy.AssetRefs"
   }
 }
