@@ -65,3 +65,8 @@ and can be replaced with your own implementation. It is only 5 virtual methods t
 - UniTask based async loading 
 - Native C# Nullability annotations
 - C# 10
+
+[Documentation](Documentation.md)
+
+This package uses cropped version of UniTask package. Full and latest version can be installed separately without issues from 
+[there](https://github.com/Cysharp/UniTask)  
