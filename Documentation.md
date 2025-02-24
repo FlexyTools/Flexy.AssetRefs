@@ -162,7 +162,7 @@ Finally
 --------
 
 **Warning**  
-you can not **store** LoadTasks they rented from pool and will be returned to pool after 10 frames once loading done 
+You can not **store** LoadTasks! They rented from pool and will be returned to pool after 10 frames once loading done 
 
 **Note**  
-Package uses C# 10 and C# 8 Nullable reference types. All nullability warnings treated as errors.
+Package uses C# 10 and C# 8 Nullable reference types. All nullability warnings treated as errors
