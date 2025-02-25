@@ -1,4 +1,7 @@
 ﻿![Image Sequence_038_0002](https://github.com/user-attachments/assets/792efb83-33db-4c8c-8e92-2c8e5a363522)
+[Docs and Use Cases](Documentation.md) 
+| [Unity Discussions topic](https://discussions.unity.com/t/flexy-assetrefs-v5-0-0-released/1605799) 
+| [Asset Store](https://u3d.as/3u78) 
 
 **Flexy.AssetRefs**
 ===================
@@ -46,6 +49,7 @@ more complex systems later.
 
 See [Docs and Use Cases](Documentation.md) for usage samples   
 
+
 **Flexy.AssetRefs is**
 -----------------------
 **Modular and Simple to use:** we separate the reference system from complex asset bundles bundling and downloading. 
@@ -72,7 +76,6 @@ and can be replaced with your own implementation. It is only 5 virtual methods t
 - C# 10
 - Fast Enter Play Mode support
 
-[Documentation](Documentation.md)
 
 This package uses cropped version of UniTask package. Full and latest version can be installed separately without issues from 
 [there](https://github.com/Cysharp/UniTask)  

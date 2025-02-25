@@ -36,22 +36,22 @@ private async UniTask PopulateIconAsync ( )
     _image.sprite = await _icon.LoadAssetAsync( );
 }
 
-private async UniTask PopulateIconAsync ( )
+private async UniTask LoadSceneAsync ( )
 {
     await _map_01.LoadSceneAsync( );
 }
 ```    
 
 **LoadExtensions** responsible for loading asset/scene by Ref and **no one cares** how they do this!  
-Default implementation directly use AssetLoader Api to load assets  
+Default implementation directly uses AssetLoader Api to load assets  
 
 **AssetLoader** is class responsible for loading assets/scenes in Editor / PlayMode / Build  
-In Editor AssetLoader loads assets using AssetDatabase in PlayMode with RuntimeMode enabled or in Build  
-it uses runtime implementation that you **can override!**  
-To enable RuntimeMode go **Tools/Flexy/AssetRefs/AssetLoader/Enable Runtime Behavior** 
+In Editor AssetLoader loads assets using AssetDatabase  
+In PlayMode with RuntimeBehavior enabled or in Build it uses runtime implementation that you **can override!**  
+To enable RuntimeBehavior go **Tools/Flexy/AssetRefs/AssetLoader/Enable Runtime Behavior** 
 
-**By Default** you have installed AssetLoader_Resources that have runtime implementation that loads AssetsFrom   
-using Unity Resources Api. But you **do not** need to place your assets into Resources folder! Thanks to **Pipeline**  
+**Default** AssetLoader is AssetLoader_Resources that loads Assets using Resources Api  
+But you **do not** need to place your assets into Resources folder! Thanks to **Pipeline**  
 
 **Pipeline** is SciptableObject with list of **Tasks** that collects Refs and make sure they can be loaded in runtime  
 this is where **magic** happens :) 
@@ -61,8 +61,8 @@ Simple working pipeline must consist of Tasks (in order):
 
 - **RunOnBuildPreprocess** - it will launch this pipeline as PreBuild step (only if it first task)
 - Few Tasks that collects refs to objects
-  - **AddRefsDirect** - add references to objects directly (how it useful later in doc)  
-  - **AddRefsFromDirectory** - with this you can collect all sprites form directory with subdirectories
+  - **AddRefsDirect** - add references to objects directly (how it useful - later in doc)  
+  - **AddRefsFromDirectory** - will collect all assets of chosen type (sprite,prefab...) form directory with subdirectories
 - **ResourcesPopulateRefs** - will make collected refs available for loading in runtime (without touching source assets) 
 
 With **correct** pipeline your refs will work in editor and in build seamlessly!
@@ -70,7 +70,7 @@ With **correct** pipeline your refs will work in editor and in build seamlessly!
 What is Correct pipeline
 --------
 
-Correct pipeline is such pipeline that collects refs to all assets you want to load in runtime.
+Correct pipeline is such pipeline that collects refs to all assets you want to load in runtime
 
 **How to make One?**
 
@@ -89,19 +89,19 @@ And you are ready to go
 Another way is (for case you have Game Design Data as set of ScriptableObject's):
 
 ```
-Place all references to assets/scenes into DgData as AssetRefs.SceneRefs
-Implement on RootGdData ScriptableObject interafce IAssetRefsSource
-Add ref to RootGdData ScriptableObject using AddRefsDirect
+Place all references to assets/scenes into GdData as AssetRefs/SceneRefs
+Implement IAssetRefsSource on RootGdData ScriptableObject 
+Add ref to RootGdData using AddRefsDirect
 Load OnDemand assets/scenes from GdData ojects refs
 
 And you are ready to go
 ```
 
-For bigger project second way is preferable because your GameDesigners will create new stuff and 
-will set up new refs to sprites, prefabs, scenes etc. and everything will work without any additional setup 
-because pipeline will collect all refs from GdData on build.
+For bigger project second way is preferable because your GameDesigners will create new stuff, 
+will set up new refs to sprites, prefabs, scenes, etc. and everything will work without any additional setup 
+because pipeline will collect all refs from GdData on prebuild
 
-To collect AssetRefs and SceneRefs from fields on GdData objects you have ready to use method **RefsCollector.CollectRefsDeep**
+To collect AssetRefs and SceneRefs from fields on GdData objects we provide ready to use method **RefsCollector.CollectRefsDeep**
 that you can use in your implementation of IAssetRefsSource
 
 From Experience - Big Production Projects often have pipeline structure like this:
@@ -115,7 +115,7 @@ AddRefsDirect - for UIWindowsLibrary    object that implements IAssetRefsSource
 Additionally you can write project specific PipelineTasks that collect Refs your way or do actually whatever you want  
 You can use Pipelines to do various automation tasks. Collecting AssetRefs is just specific use case.
 
-Pipeline Task ResourcesPopulateRefs will create specific assets in path Assets/Resources/Fun.Flexy/AssetRefs/  
+Pipeline Task **ResourcesPopulateRefs** will create specific assets in path Assets/Resources/Fun.Flexy/AssetRefs/  
 they need to wire up loading of collected assets from Unity Resources Api and this path can be ignored in SourceControl 
 
 One more thing - AssetLoader

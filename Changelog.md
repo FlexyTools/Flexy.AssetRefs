@@ -4,11 +4,16 @@ All notable changes to this package will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
-## [Unreleased] 
+## [5.0.1] - 2025-02-25
 
 ### Fixed
 
-- Added .editorconfig to FIX formating in different environments
+- Fixed formating in different environments by adding .editorconfig 
+- Fixed wording and typos in Documentation.md 
+
+### Changed
+
+- Changed AsmDef names to pass asset store validation
 
 ## [5.0.0] - 2025-02-24
 
