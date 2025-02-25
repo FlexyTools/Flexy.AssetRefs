@@ -79,5 +79,5 @@ and can be replaced with your own implementation. It is only 5 virtual methods t
 
 
 This package uses cropped version of UniTask package under MIT License  
-See [Third-Party Notices.md](Third-Party Notices.md) file in package for details
+See [Third-Party Notices.md](ThirdPartyNotices.md) file in package for details
 Full and latest version can be installed alongside this package without issues from [there](https://github.com/Cysharp/UniTask)  
