@@ -62,7 +62,7 @@ their own loading methods with any indirections, additional checks or better kno
 **Double Easily Extendable:** asset loading done through AssetLoader instance that is backend for loading any ref 
 and can be replaced with your own implementation. It is only 5 virtual methods to implement 
 
-**Already Used in Games like:** Sniper League, Animals Happy Run, Cyberstrike
+**Already Used in Games:** Sniper League, Animals Happy Run, Cyberstrike
 **In production on platforms:** iOS, Android, Windows, Linux, Mac
 
 **Technical details**
@@ -77,5 +77,7 @@ and can be replaced with your own implementation. It is only 5 virtual methods t
 - Fast Enter Play Mode support
 
 
-This package uses cropped version of UniTask package. Full and latest version can be installed separately without issues from 
-[there](https://github.com/Cysharp/UniTask)  
+
+This package uses cropped version of UniTask package under MIT License  
+See [Third-Party Notices.md](Third-Party Notices.md) file in package for details
+Full and latest version can be installed alongside this package without issues from [there](https://github.com/Cysharp/UniTask)  

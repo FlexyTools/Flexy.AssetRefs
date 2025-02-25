@@ -6,7 +6,7 @@ namespace Flexy.AssetRefs.Editor
 	[CustomPropertyDrawer(typeof(AssetRef<>))]
 	public class AssetRefDrawer : PropertyDrawer
 	{
-		const Single ImageHeight = 60;
+		const Single CImageHeight = 60;
 		
 		// used to store cached objects of current SerializedObject our drawer part of
 		private readonly Dictionary<String, (AssetRef @ref, Object? asset)> _assets = new( );
@@ -20,7 +20,7 @@ namespace Flexy.AssetRefs.Editor
 			var addressProp		= property.FindPropertyRelative( "_uid" );
 			
 			if ( DrawPreview( addressProp, fieldInfo ) && !ArrayTableDrawer.DrawingInTableGUI )
-				return EditorGUI.GetPropertyHeight( addressProp, label, true ) + ImageHeight + 10;
+				return EditorGUI.GetPropertyHeight( addressProp, label, true ) + CImageHeight + 10;
 			
 			return EditorGUI.GetPropertyHeight( addressProp, label, true );
 		}
@@ -98,7 +98,7 @@ namespace Flexy.AssetRefs.Editor
 					else
 					{
 						position.y += 5;
-		                position.height = ImageHeight + EditorGUI.GetPropertyHeight( property, label, true );
+		                position.height = CImageHeight + EditorGUI.GetPropertyHeight( property, label, true );
 		                
 		                if( sprite is not null )
 							DrawTexturePreview( position, sprite );
