@@ -1,7 +1,8 @@
 ﻿![Image Sequence_038_0002](https://github.com/user-attachments/assets/792efb83-33db-4c8c-8e92-2c8e5a363522)
-[Docs and Use Cases](Documentation.md) 
-| [Unity Discussions topic](https://discussions.unity.com/t/flexy-assetrefs-v5-0-0-released/1605799) 
-| [Asset Store](https://u3d.as/3u78) 
+[Docs and Use Cases](Documentation.md)
+| [FAQ](FAQ.md)
+| [Unity Forum](https://discussions.unity.com/t/flexy-assetrefs-v5-0-0-released/1605799) 
+| Asset Store link in progress 
 
 **Flexy.AssetRefs**
 ===================
@@ -64,6 +65,13 @@ and can be replaced with your own implementation. It is only 5 virtual methods t
 
 **Already Used in Games:** Sniper League, Animals Happy Run, Cyberstrike
 **In production on platforms:** iOS, Android, Windows, Linux, Mac
+
+**Roadmap**
+-----------------------
+
+**Auto unloaders:** want to add few Api's to help auto unload loaded assets    
+**Unity 6 Awaitables:** I think about moving Api to Unity 6 Awaitables in asset version 6.x  
+
 
 **Technical details**
 ---------------------

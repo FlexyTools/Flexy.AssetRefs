@@ -147,7 +147,7 @@ var loadBossRoomTask = _bossRoom.LoadSceneAsync( this.gameObject, new LoadSceneT
 await loadBossRoomTask.WaitForSceneLoadStart( );
 
 // after scene started loading scene struct is available and we can use any scene related api before scne loading finishes
-vae scene = loadBossRoomTask.Scene;
+var scene = loadBossRoomTask.Scene;
 
 while ( !loadBossRoomTask.IsDone )
 {
