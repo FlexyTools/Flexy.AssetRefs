@@ -21,10 +21,11 @@ public struct SceneRef : IRefLike, IEquatable<SceneRef>
 		
 	public override	String			ToString			( )					=> _uid == default ? String.Empty : _uid.ToString( );
 	public			void			FromString			( String address )	=> _uid = String.IsNullOrWhiteSpace( address ) ? default : Hash128.Parse( address );
-
-	public static	LoadSceneTask	LoadDummySceneAsync		( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects ) => AssetRef.AssetsLoader.LoadDummyScene( ctx, mode, unloadOptions );
+	
+	public static	LoadSceneTask	LoadDummySceneAsync	( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects ) => AssetRef.AssetsLoader.LoadDummyScene( ctx, mode, unloadOptions );
 
 #if UNITY_URP
+	[Obsolete("No Need For specific Method CameraData will be added if Camera added")]
 	public static	LoadSceneTask	LoadUrpDummySceneAsync	( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects ) => AssetRef.AssetsLoader.LoadDummyScene( ctx, mode, unloadOptions, null, typeof(Camera), typeof(UnityEngine.Rendering.Universal.UniversalAdditionalCameraData), typeof(AudioListener) );
 #endif
 }
