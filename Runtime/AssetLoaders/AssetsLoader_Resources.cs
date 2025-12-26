@@ -55,11 +55,11 @@ public class AssetsLoader_Resources : AssetsLoader
 		sceneLoadOp.priority = p.Priority;
 		var scene			= SceneManager.GetSceneAt(SceneManager.sceneCount - 1);	
 		
-		var info			= LoadSceneTask.RentSceneLoadData();
-		info.Scene			= scene;
-		info.DelaySceneActivation = !p.ActivateOnLoad;
+		var loadData		= LoadSceneTask.RentSceneLoadData();
+		loadData.Scene		= scene;
+		loadData.DelaySceneActivation = !p.ActivateOnLoad;
 		
-		return new( SceneLoadWaitImpl(sceneLoadOp, info), info );
+		return loadData.RunChain( SceneLoadWaitImpl(sceneLoadOp, loadData) );
 	}
 
 	private					T?						LoadFinalising<T>			( Object? obj ) where T : Object				

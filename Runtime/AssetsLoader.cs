@@ -1,3 +1,4 @@
+using System.Linq;
 using Flexy.AssetRefs.Extra;
 
 namespace Flexy.AssetRefs;
@@ -93,13 +94,13 @@ public abstract class AssetsLoader
 			var sceneLoadOp		= UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode( path, new( p.LoadMode, p.PhysicsMode ) );
 			sceneLoadOp.priority = p.Priority;
 			sceneLoadOp.allowSceneActivation = p.ActivateOnLoad;
+			
 			var scene			= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
-
-			var info			= LoadSceneTask.RentSceneLoadData( );
-			info.Scene			= scene;
-			info.DelaySceneActivation = !p.ActivateOnLoad;
+			var loadData		= LoadSceneTask.RentSceneLoadData();
+			loadData.Scene		= scene;
+			loadData.DelaySceneActivation = !p.ActivateOnLoad;
 		
-			sceneTask	= new( SceneLoadWaitImpl( sceneLoadOp, info ), info );
+			return loadData.RunChain( SceneLoadWaitImpl(sceneLoadOp, loadData) );
 		}
 		else
 #endif
@@ -206,87 +207,89 @@ public abstract class AssetsLoader
 	}
 	protected virtual		LoadSceneTask			LoadDummyScene_Impl			( LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components )
 	{
-		var data			= LoadSceneTask.RentSceneLoadData( );
+		var data			= LoadSceneTask.RentSceneLoadData();
 		data.Scene			= default;
 		
-		return new( LoadDummyScene_Internal( data, mode, unloadOptions, createSceneObjects, components ), data );
+		return data.RunChain( LoadDummyScene_Internal( data, mode, unloadOptions, createSceneObjects, components ) );
 		
-		static async UniTask<Scene>  LoadDummyScene_Internal( LoadSceneTask.LoadData data, LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components )
+		static async UniTask<Scene>  LoadDummyScene_Internal( LoadSceneTask.LoadData loadData, LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components )
 		{
-			try
-			{
-				List<Scene>?	scenesToUnload	= null; 
-					
-				if (mode == LoadSceneMode.Single)
-				{
-					scenesToUnload = new();
-					var count = SceneManager.loadedSceneCount;
-					for (var i = count - 1; i >= 0; i--)
-						scenesToUnload.Add( SceneManager.GetSceneAt(i) );
-				}
-			
-				var dummy	= SceneManager.CreateScene("Dummy");
-				data.Scene	= dummy;
+			List<Scene>?	scenesToUnload	= null; 
 				
-				await UniTask.NextFrame();
-			
-				SceneManager.SetActiveScene(dummy);
-			
-				new GameObject( "DummyObj", components );
-			
-				if ( createSceneObjects != null)
-				{
-					try						{ createSceneObjects(); }
-					catch (Exception ex)	{ Debug.LogException(ex); }
-				}
-			
-				data.Progress = 0.9f;
-					
-				if (scenesToUnload != null)
-				{
-					foreach (var scn in scenesToUnload)
-						if (scn.IsValid())
-							await SceneManager.UnloadSceneAsync( scn, unloadOptions ).ToUniTask();
-				}
-			
-				data.Progress = 1f;
-				
-				return dummy;
-			}
-			finally
+			if (mode == LoadSceneMode.Single)
 			{
-				data.Release().Forget();
+				scenesToUnload = new();
+				var count = SceneManager.loadedSceneCount;
+				for (var i = count - 1; i >= 0; i--)
+					scenesToUnload.Add( SceneManager.GetSceneAt(i) );
 			}
+		
+			var dummy	= SceneManager.CreateScene("Dummy");
+			loadData.Scene	= dummy;
+			
+			await UniTask.NextFrame();
+		
+			SceneManager.SetActiveScene(dummy);
+		
+			var dummyObj = new GameObject( "DummyObj", components );
+		
+			#if UNITY_URP
+			var hasCam = components.Contains(typeof(Camera));
+			if (hasCam)
+				dummyObj.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+			#elif UNITY_HDRP
+			var hasCam = components.Contains(typeof(Camera));
+			if (hasCam)
+				dummyObj.AddComponent<UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData>();
+			#endif
+		
+			if ( createSceneObjects != null)
+			{
+				try						{ createSceneObjects(); }
+				catch (Exception ex)	{ Debug.LogException(ex); }
+			}
+		
+			loadData.Progress = 0.9f;
+				
+			if (scenesToUnload != null)
+			{
+				foreach (var scn in scenesToUnload)
+					if (scn.IsValid())
+						await SceneManager.UnloadSceneAsync( scn, unloadOptions ).ToUniTask();
+			}
+		
+			loadData.Progress = 1f;
+			
+			return dummy;
 		}
 	}
 	
 	protected static async	UniTask<Scene>			SceneLoadWaitImpl			( AsyncOperation ao, LoadSceneTask.LoadData loadData )	
 	{
-		try
+		while ( !ao.isDone && ( ao.allowSceneActivation || ao.progress < 0.9f ) )
 		{
-			while ( !ao.isDone && ( ao.allowSceneActivation || !Mathf.Approximately( ao.progress, .9f ) ) )
-			{
+			await UniTask.NextFrame();
+			loadData.Progress = ao.progress;
+		}
+				
+		loadData.Progress = 0.9f;
+		
+		if (!ao.allowSceneActivation)
+		{
+			while ( loadData.DelaySceneActivation )
 				await UniTask.NextFrame( );
-				loadData.Progress = ao.progress;
-			}
-					
-			loadData.Progress	= 1;
-			
-			if ( !ao.allowSceneActivation )
-			{
-				while ( loadData.DelaySceneActivation )
-					await UniTask.NextFrame( );
 
-				ao.allowSceneActivation = true;
-				await UniTask.NextFrame( );
-			}
-			
-			return loadData.Scene;
+			ao.allowSceneActivation = true;
+			await UniTask.NextFrame( );
 		}
-		finally
+		
+		while (ao.progress < 1.0f)
 		{
-			loadData.Release( ).Forget( );
+			loadData.Progress = ao.progress;
+			await UniTask.NextFrame( );
 		}
+		
+		return loadData.Scene;
 	}
 	protected static async	UniTask					WaitSceneLoadStart			( LoadSceneTask sceneTask, GameObject ctx )				
 	{
@@ -361,54 +364,105 @@ public readonly struct LoadAssetTask<T>
 	
 public readonly struct LoadSceneTask
 {
-	public LoadSceneTask( UniTask<Scene> t, LoadData data )
+	public LoadSceneTask( LoadData data ) => _loadData	= data;
+	public LoadSceneTask( UniTask<Scene> sceneTask, LoadData data )
 	{
-		_loadTask	= t;
-		_loadData	= data;
+		_loadData = data;
+		data.RunChain(sceneTask);
 	}
-
-	private readonly UniTask<Scene>		_loadTask;
-	private readonly LoadData			_loadData;
+	
+	private readonly LoadData	_loadData;
 	
 	public Single			Progress	=> IsDone ? 1 : _loadData?.Progress ?? 0;
 	public Scene			Scene		=> _loadData?.Scene ?? default;
-	public Boolean			IsDone		=> _loadTask.Status != UniTaskStatus.Pending;
-	public UniTaskStatus	Status		=> _loadTask.Status;
+	public Boolean			IsDone		=> _loadData.ChainTask.Status != UniTaskStatus.Pending;
+	public UniTaskStatus	Status		=> _loadData.ChainTask.Status;
 	
-	public UniTask<Scene>.Awaiter	GetAwaiter				( ) => _loadTask.GetAwaiter( );
-	public void						Forget					( )	=> _loadTask.Forget( );
+	public UniTask<Scene>.Awaiter	GetAwaiter				( ) => _loadData.ChainTask.GetAwaiter();
+	public void						Forget					( )	=> _loadData.ChainTask.Forget();
 
-	public async	UniTask<Scene>	WaitForSceneLoadStart	( )							
+	public async	UniTask<Scene>	WaitForSceneLoadStart	( )									
 	{
 		while ( !IsDone & _loadData.Scene == default )
 			await UniTask.Yield( PlayerLoopTiming.LastPostLateUpdate );
 		
 		return _loadData.Scene;
 	}
-	public			UniTask			ContinueWith			( Action<Scene> action )	=> _loadTask.ContinueWith( action );
-	public			void			AllowSceneActivation	( )							=> _loadData.DelaySceneActivation = false;
+	public			UniTask			ContinueWith			( Action<Scene> action )			=> _loadData.ChainTask.ContinueWith(action);
+	public			void 			SetNextStep				( Func<LoadData, UniTask> nextStep )=> _loadData.NextStep = nextStep;
+	public			void			AllowSceneActivation	( )									=> _loadData.DelaySceneActivation = false;
 	
 	public static LoadData RentSceneLoadData( ) => GenericPool<LoadData>.Get();
 	
 	public class LoadData: IProgress<Single>
 	{
+		internal UniTask<Scene>	ChainTask;
+		public UniTask			CurrentStep {get; private set;}
+	
 		public Scene			Scene;
 		public Single			Progress;
 		public Boolean			DelaySceneActivation;
 		
-		public Boolean			IsDone => Progress >= 1.0;
+		public Single			RangeMin = 0;
+		public Single			RangeMax = 1;
+		public String?			StepDescription;
 		
-		public async UniTask	Release			( )		
+		public Func<LoadData, UniTask>?	NextStep;
+		
+		public Single			ProgressOverall	=> (Progress - RangeMin) / (RangeMax - RangeMin);
+		public Boolean			IsDone			=> ChainTask.Status != UniTaskStatus.Pending;
+		
+		public LoadSceneTask		RunChain		( UniTask<Scene> loadTask, Single rangeMin = 0, Single rangeMax = 1 )	
 		{
-			await UniTask.DelayFrame( 10 );
-
-			Progress	= default;
-			Scene		= default;
-			DelaySceneActivation = default;
-		
-			GenericPool<LoadData>.Release( this );
+			RangeMin	= rangeMin;
+			RangeMax	= rangeMax;
+			CurrentStep	= loadTask;
+			ChainTask	= WaitLoadChain(this);
+			
+			return new(this);
 		}
-		public void				Report			( Single value ) => Progress = value;
+		public void					Report			( Single value )		=> Progress = value;
+		static async UniTask<Scene>	WaitLoadChain	( LoadData loadData )	
+		{
+			try
+			{
+				while (loadData.CurrentStep.Status == UniTaskStatus.Pending)
+					await UniTask.NextFrame();
+		
+				while (loadData.NextStep != null)
+				{
+					var nextStep			= loadData.NextStep;
+					loadData.NextStep		= null;
+					loadData.CurrentStep	= nextStep(loadData);
+					
+					while (loadData.CurrentStep.Status == UniTaskStatus.Pending)
+						await UniTask.NextFrame();
+				}
+			}
+			finally
+			{
+				Release(loadData).Forget();
+				
+				static async UniTask	Release			(  LoadData loadData )		
+				{
+					await UniTask.DelayFrame(10);
+
+					loadData.ChainTask		= default;
+					loadData.CurrentStep	= default;
+					loadData.Scene			= default;
+					loadData.Progress		= default;
+					loadData.RangeMin		= default;
+					loadData.RangeMax		= default;
+					loadData.StepDescription = default;
+					loadData.NextStep	= default;
+					loadData.DelaySceneActivation = default;
+		
+					GenericPool<LoadData>.Release( loadData );
+				}
+			}
+		
+			return loadData.Scene;
+		}
 	}
 	
 	public record struct Parameters
