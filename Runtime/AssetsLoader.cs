@@ -5,12 +5,6 @@ namespace Flexy.AssetRefs;
 
 public abstract class AssetsLoader
 {
-	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-	private static void StaticClear( )
-	{
-		NewSceneCreatedAndLoadingStarted = null;
-	}
-	
 #if UNITY_EDITOR
 	private static	Boolean?		_runtimeBehaviorEnabled;
 	public static	Boolean			RuntimeBehaviorEnabled		
@@ -20,7 +14,11 @@ public abstract class AssetsLoader
 	}
 #endif
 	
-	public static event		Action<Scene,Scene>?	NewSceneCreatedAndLoadingStarted; 
+	public static event		Action<Scene,Scene>?	NewSceneCreatedAndLoadingStarted	
+	{
+		add		=> LoadSceneTask.NewSceneCreatedAndLoadingStarted += value;
+		remove	=> LoadSceneTask.NewSceneCreatedAndLoadingStarted -= value;
+	}
 	
 	public		 			UniTask<T?>				LoadAssetAsync<T>			( AssetRef @ref ) where T:Object		
 	{
@@ -85,8 +83,6 @@ public abstract class AssetsLoader
 	}
 	public					LoadSceneTask			LoadSceneAsync				( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context )	
 	{
-		LoadSceneTask sceneTask;
-		
 #if UNITY_EDITOR			
 		if( !RuntimeBehaviorEnabled || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
 		{
@@ -95,42 +91,29 @@ public abstract class AssetsLoader
 			sceneLoadOp.priority = p.Priority;
 			sceneLoadOp.allowSceneActivation = p.ActivateOnLoad;
 			
-			var scene			= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
-			var loadData		= LoadSceneTask.RentSceneLoadData();
-			loadData.Scene		= scene;
-			loadData.DelaySceneActivation = !p.ActivateOnLoad;
-		
-			return loadData.RunChain( SceneLoadWaitImpl(sceneLoadOp, loadData) );
+			var sceneTask = new LoadSceneTask(context)
+			{
+				Scene = SceneManager.GetSceneAt( SceneManager.sceneCount - 1 ),
+				DelaySceneActivation = !p.ActivateOnLoad
+			};
+
+			return sceneTask.Run( SceneLoadWaitImpl(sceneLoadOp, sceneTask) );
 		}
-		else
 #endif
-		{
-			sceneTask	= LoadSceneAsync_Impl( @ref, p );
-		}
-		
-		WaitSceneLoadStart( sceneTask, context ).Forget( );
-		
-		return sceneTask;
+		return	LoadSceneAsync_Impl( @ref, p, context );
 	}
 	public					LoadSceneTask			LoadDummyScene				( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects, DummySceneFlags dummyFlags = DummySceneFlags.DummyCamera | DummySceneFlags.DummyListener, Action? createSceneObjects = null )
 	{
-		var task = LoadDummyScene_Impl( mode, unloadOptions, dummyFlags, createSceneObjects );
-		
-		WaitSceneLoadStart( task, ctx ).Forget( );
-		
-		return task;
-	}
-	public					LoadSceneTask			LoadDummyScene				( GameObject ctx, LoadSceneMode mode, params Type[] components )	
-	{
-		return LoadDummyScene( ctx, mode, UnloadSceneOptions.None, null, components );
+		var components = new List<Type>();
+
+		if( (dummyFlags & DummySceneFlags.DummyCamera) != 0 )	components.Add( typeof(Camera) );
+		if( (dummyFlags & DummySceneFlags.DummyListener) != 0 )	components.Add( typeof(AudioListener) );
+	
+		return LoadDummyScene_Impl( ctx, mode, unloadOptions, createSceneObjects, components.ToArray() );
 	}
 	public					LoadSceneTask			LoadDummyScene				( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects, Action? createSceneObjects = null, params Type[] components )
 	{
-		var task = LoadDummyScene_Impl( mode, unloadOptions, createSceneObjects, components );
-		
-		WaitSceneLoadStart( task, ctx ).Forget( );
-		
-		return task;
+		return LoadDummyScene_Impl( ctx, mode, unloadOptions, createSceneObjects, components );
 	}
 	
 	public	static			T?						EditorLoadAsset<T>			( AssetRef<T> address ) where T : Object
@@ -142,8 +125,7 @@ public abstract class AssetsLoader
 		
 		return (T?)asset;
 	}
-	public	static			Object?					EditorLoadAsset				( AssetRef address, Type _ ) => EditorLoadAssetRaw(address);
-	public	static			Object?					EditorLoadAssetRaw			( AssetRef address )			
+	public	static			Object?					EditorLoadAssetRaw			( AssetRef address )					
 	{
 #if UNITY_EDITOR
 		
@@ -173,7 +155,7 @@ public abstract class AssetsLoader
 		
 		return null;
 	}
-	public	static			AssetRef				EditorGetAssetAddress		( Object asset )				
+	public	static			AssetRef				EditorGetAssetAddress		( Object asset )						
 	{
 		if (!asset)
 			return default;
@@ -195,24 +177,17 @@ public abstract class AssetsLoader
 	protected abstract		UniTask<T?>				LoadAssetAsync_Impl<T>		( AssetRef @ref ) where T:Object;
 	protected abstract		T?						LoadAssetSync_Impl<T>		( AssetRef @ref ) where T:Object;
 	protected abstract		String?					GetSceneName_Impl			( SceneRef @ref );
-	protected abstract 		LoadSceneTask			LoadSceneAsync_Impl			( SceneRef @ref, LoadSceneTask.Parameters p );
-	protected virtual		LoadSceneTask			LoadDummyScene_Impl			( LoadSceneMode mode, UnloadSceneOptions unloadOptions, DummySceneFlags dummyFlags, Action? createSceneObjects )
+	protected abstract 		LoadSceneTask			LoadSceneAsync_Impl			( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context );
+	protected virtual		LoadSceneTask			LoadDummyScene_Impl			( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components )
 	{
-		var components = new List<Type>();
+		var sceneTask			= new LoadSceneTask(ctx)
+		{
+			Scene = default
+		};
 
-		if( (dummyFlags & DummySceneFlags.DummyCamera) != 0 )	components.Add( typeof(Camera) );
-		if( (dummyFlags & DummySceneFlags.DummyListener) != 0 )	components.Add( typeof(AudioListener) );
-	
-		return LoadDummyScene_Impl( mode, unloadOptions, createSceneObjects, components.ToArray() ); 
-	}
-	protected virtual		LoadSceneTask			LoadDummyScene_Impl			( LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components )
-	{
-		var data			= LoadSceneTask.RentSceneLoadData();
-		data.Scene			= default;
+		return sceneTask.Run( LoadDummyScene_Internal( sceneTask, mode, unloadOptions, createSceneObjects, components ) );
 		
-		return data.RunChain( LoadDummyScene_Internal( data, mode, unloadOptions, createSceneObjects, components ) );
-		
-		static async UniTask<Scene>  LoadDummyScene_Internal( LoadSceneTask.LoadData loadData, LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components )
+		static async UniTask<Scene>  LoadDummyScene_Internal( LoadSceneTask sceneTask, LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components )
 		{
 			List<Scene>?	scenesToUnload	= null; 
 				
@@ -225,7 +200,7 @@ public abstract class AssetsLoader
 			}
 		
 			var dummy	= SceneManager.CreateScene("Dummy");
-			loadData.Scene	= dummy;
+			sceneTask.Scene	= dummy;
 			
 			await UniTask.NextFrame();
 		
@@ -249,7 +224,7 @@ public abstract class AssetsLoader
 				catch (Exception ex)	{ Debug.LogException(ex); }
 			}
 		
-			loadData.Progress = 0.9f;
+			sceneTask.StepProgress = 0.9f;
 				
 			if (scenesToUnload != null)
 			{
@@ -258,26 +233,26 @@ public abstract class AssetsLoader
 						await SceneManager.UnloadSceneAsync( scn, unloadOptions ).ToUniTask();
 			}
 		
-			loadData.Progress = 1f;
+			sceneTask.StepProgress = 1f;
 			
 			return dummy;
 		}
 	}
 	
-	protected static async	UniTask<Scene>			SceneLoadWaitImpl			( AsyncOperation ao, LoadSceneTask.LoadData loadData )	
+	protected static async	UniTask<Scene>			SceneLoadWaitImpl			( AsyncOperation ao, LoadSceneTask sceneTask )	
 	{
 		while ( !ao.isDone && ( ao.allowSceneActivation || ao.progress < 0.9f ) )
 		{
 			await UniTask.NextFrame();
-			loadData.Progress = ao.progress;
+			sceneTask.StepProgress = ao.progress;
 		}
 				
-		loadData.Progress = 0.9f;
+		sceneTask.StepProgress = 0.9f;
 		
 		if (!ao.allowSceneActivation)
 		{
-			while ( loadData.DelaySceneActivation )
-				await UniTask.NextFrame( );
+			while (sceneTask.DelaySceneActivation)
+				await UniTask.NextFrame();
 
 			ao.allowSceneActivation = true;
 			await UniTask.NextFrame( );
@@ -285,22 +260,13 @@ public abstract class AssetsLoader
 		
 		while (ao.progress < 1.0f)
 		{
-			loadData.Progress = ao.progress;
-			await UniTask.NextFrame( );
+			sceneTask.StepProgress = ao.progress;
+			await UniTask.NextFrame();
 		}
 		
-		return loadData.Scene;
+		return sceneTask.Scene;
 	}
-	protected static async	UniTask					WaitSceneLoadStart			( LoadSceneTask sceneTask, GameObject ctx )				
-	{
-		while( !sceneTask.IsDone && sceneTask.Scene == default )
-			await UniTask.Yield( PlayerLoopTiming.LastPreLateUpdate );
-		
-		if( sceneTask.Scene != default )
-			try						{ NewSceneCreatedAndLoadingStarted?.Invoke( ctx.scene, sceneTask.Scene );	}			
-			catch( Exception ex )	{ Debug.LogException( ex );													}
-	}
-		
+	
 	public static class Editor
 	{
 #if UNITY_EDITOR
@@ -312,157 +278,89 @@ public abstract class AssetsLoader
 #endif
 	}
 }
-
-public static class LoadAssetTask
-{
-	public static	LoadAssetTask<T>		FromResult<T>	( T result )	=> new ( UniTask.FromResult( result ), null );
 	
-	public class LoadData: IProgress<Single>
+public class LoadSceneTask : IProgress<Single>
+{
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	private static void StaticClear( ) => NewSceneCreatedAndLoadingStarted = null;
+
+	public LoadSceneTask( GameObject context, Single rangeMin = 0, Single rangeMax = 1, String? description = "Loading..." )
 	{
-		public Single			Progress;
-		public Boolean			IsCanceled;
-		public Boolean			IsDone => Progress >= 1.0;
+		Context			= context;
+		RangeMin		= rangeMin;
+		RangeMax		= rangeMax;
+		StepDescription	= description;
+	}
+	
+	private UniTask<Scene>	ChainTask;
+	public	GameObject		Context {get;}
+	
+	public	Scene			Scene;
+	public	Single			StepProgress;
+	public	Boolean			DelaySceneActivation;
+	
+	public	Single			RangeMin;
+	public	Single			RangeMax;
+	public	String?			StepDescription;
+
+	public	UniTask			CurrentStep {get; private set;}
+
+	private Func<LoadSceneTask, UniTask>?	NextStep;
+	
+	public Single					Progress	=> IsDone ? 1 : (StepProgress - RangeMin) / (RangeMax - RangeMin);
+	public UniTaskStatus			Status		=> ChainTask.Status;
+	public Boolean					IsDone		=> ChainTask.Status != UniTaskStatus.Pending;
+
+	public static event		Action<Scene,Scene>?	NewSceneCreatedAndLoadingStarted;
+	
+	public LoadSceneTask	Run						( UniTask<Scene> firstSceneTask )		
+	{
+		CurrentStep		= firstSceneTask;
+		ChainTask		= LoadSceneStepAsync();
 		
-		public async UniTask	Release			( )		
-		{
-			await UniTask.DelayFrame( 10 );
-
-			Progress	= default;
-			IsCanceled	= default;
-		
-			GenericPool<LoadData>.Release( this );
-		}
-		public void				Report			( Single value ) => Progress = value;
+		return this;
 	}
-}
+	public	UniTask			ContinueWith			( Action<Scene> action )				=> ChainTask.ContinueWith(action);
+	public	void 			SetNextStep				( Func<LoadSceneTask, UniTask> nextStep )=> NextStep = nextStep;
+	public	void			AllowSceneActivation	( )										=> DelaySceneActivation = false;
+	
+	public void						Report			( Single value )		=> StepProgress = value;
+	public UniTask<Scene>.Awaiter	GetAwaiter		( ) => ChainTask.GetAwaiter();
+	public void						Forget			( )	=> ChainTask.Forget();
 
-public readonly struct LoadAssetTask<T>
-{
-	public LoadAssetTask( UniTask<T> task, LoadAssetTask.LoadData? data )
+	public			UniTask<Scene>	AsUniTask				( )	
 	{
-		_loadTask	= task;
-		_loadData	= data;
+		return ChainTask;
 	}
-
-	private readonly UniTask<T>					_loadTask;
-	private readonly LoadAssetTask.LoadData?	_loadData;
-	
-	public Single				Progress		=> IsDone ? 1 : _loadData?.Progress ?? 0;
-	public Boolean				IsDone			=> _loadTask.Status != UniTaskStatus.Pending;
-	public Boolean				IsSuccess		=> _loadTask.Status == UniTaskStatus.Succeeded;
-	public UniTaskStatus		Status			=> _loadTask.Status;
-	
-	public T					GetResult		( ) => GetAwaiter( ).GetResult( );
-	public UniTask<T>.Awaiter	GetAwaiter		( ) => _loadTask.GetAwaiter( );
-	public void					Forget			( )	=> _loadTask.Forget( );
-	public void					Cancel			( )	
+	public async	UniTask<Scene>	WaitForSceneLoadStart	( )	
 	{
-		if( _loadData != null )
-			_loadData.IsCanceled = true;
-	}
-}
-	
-public readonly struct LoadSceneTask
-{
-	public LoadSceneTask( LoadData data ) => _loadData	= data;
-	public LoadSceneTask( UniTask<Scene> sceneTask, LoadData data )
-	{
-		_loadData = data;
-		data.RunChain(sceneTask);
-	}
-	
-	private readonly LoadData	_loadData;
-	
-	public Single			Progress	=> IsDone ? 1 : _loadData?.Progress ?? 0;
-	public Scene			Scene		=> _loadData?.Scene ?? default;
-	public Boolean			IsDone		=> _loadData.ChainTask.Status != UniTaskStatus.Pending;
-	public UniTaskStatus	Status		=> _loadData.ChainTask.Status;
-	
-	public UniTask<Scene>.Awaiter	GetAwaiter				( ) => _loadData.ChainTask.GetAwaiter();
-	public void						Forget					( )	=> _loadData.ChainTask.Forget();
-
-	public async	UniTask<Scene>	WaitForSceneLoadStart	( )									
-	{
-		while ( !IsDone & _loadData.Scene == default )
+		while (!IsDone && Scene == default)
 			await UniTask.Yield( PlayerLoopTiming.LastPostLateUpdate );
 		
-		return _loadData.Scene;
+		return Scene;
 	}
-	public			UniTask			ContinueWith			( Action<Scene> action )			=> _loadData.ChainTask.ContinueWith(action);
-	public			void 			SetNextStep				( Func<LoadData, UniTask> nextStep )=> _loadData.NextStep = nextStep;
-	public			void			AllowSceneActivation	( )									=> _loadData.DelaySceneActivation = false;
-	
-	public static LoadData RentSceneLoadData( ) => GenericPool<LoadData>.Get();
-	
-	public class LoadData: IProgress<Single>
+	private async	UniTask<Scene>	LoadSceneStepAsync		( )	
 	{
-		internal UniTask<Scene>	ChainTask;
-		public UniTask			CurrentStep {get; private set;}
+		await WaitForSceneLoadStart();
+		
+		if( Scene != default )
+			try						{ NewSceneCreatedAndLoadingStarted?.Invoke( Context.scene, Scene );	}			
+			catch( Exception ex )	{ Debug.LogException( ex );													}
 	
-		public Scene			Scene;
-		public Single			Progress;
-		public Boolean			DelaySceneActivation;
-		
-		public Single			RangeMin = 0;
-		public Single			RangeMax = 1;
-		public String?			StepDescription;
-		
-		public Func<LoadData, UniTask>?	NextStep;
-		
-		public Single			ProgressOverall	=> (Progress - RangeMin) / (RangeMax - RangeMin);
-		public Boolean			IsDone			=> ChainTask.Status != UniTaskStatus.Pending;
-		
-		public LoadSceneTask		RunChain		( UniTask<Scene> loadTask, Single rangeMin = 0, Single rangeMax = 1 )	
+		while (CurrentStep.Status == UniTaskStatus.Pending)
+			await UniTask.NextFrame();
+	
+		while (NextStep != null)
 		{
-			RangeMin	= rangeMin;
-			RangeMax	= rangeMax;
-			CurrentStep	= loadTask;
-			ChainTask	= WaitLoadChain(this);
+			var nextStep			= NextStep;
+			NextStep		= null;
+			CurrentStep	= nextStep(this);
 			
-			return new(this);
+			while (CurrentStep.Status == UniTaskStatus.Pending)
+				await UniTask.NextFrame();
 		}
-		public void					Report			( Single value )		=> Progress = value;
-		static async UniTask<Scene>	WaitLoadChain	( LoadData loadData )	
-		{
-			try
-			{
-				while (loadData.CurrentStep.Status == UniTaskStatus.Pending)
-					await UniTask.NextFrame();
 		
-				while (loadData.NextStep != null)
-				{
-					var nextStep			= loadData.NextStep;
-					loadData.NextStep		= null;
-					loadData.CurrentStep	= nextStep(loadData);
-					
-					while (loadData.CurrentStep.Status == UniTaskStatus.Pending)
-						await UniTask.NextFrame();
-				}
-			}
-			finally
-			{
-				Release(loadData).Forget();
-				
-				static async UniTask	Release			(  LoadData loadData )		
-				{
-					await UniTask.DelayFrame(10);
-
-					loadData.ChainTask		= default;
-					loadData.CurrentStep	= default;
-					loadData.Scene			= default;
-					loadData.Progress		= default;
-					loadData.RangeMin		= default;
-					loadData.RangeMax		= default;
-					loadData.StepDescription = default;
-					loadData.NextStep	= default;
-					loadData.DelaySceneActivation = default;
-		
-					GenericPool<LoadData>.Release( loadData );
-				}
-			}
-		
-			return loadData.Scene;
-		}
+		return Scene;
 	}
 	
 	public record struct Parameters

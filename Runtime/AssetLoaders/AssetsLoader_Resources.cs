@@ -46,7 +46,7 @@ public class AssetsLoader_Resources : AssetsLoader
 			
 		return asset.Name ?? "";
 	}
-	protected override		LoadSceneTask			LoadSceneAsync_Impl			( SceneRef @ref, LoadSceneTask.Parameters p )	
+	protected override		LoadSceneTask			LoadSceneAsync_Impl			( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context )	
 	{
 		var address			= @ref.Uid;
 		var asset			= Resources.Load<ResourceRef>($"Fun.Flexy/AssetRefs/{address}");
@@ -55,11 +55,13 @@ public class AssetsLoader_Resources : AssetsLoader
 		sceneLoadOp.priority = p.Priority;
 		var scene			= SceneManager.GetSceneAt(SceneManager.sceneCount - 1);	
 		
-		var loadData		= LoadSceneTask.RentSceneLoadData();
-		loadData.Scene		= scene;
-		loadData.DelaySceneActivation = !p.ActivateOnLoad;
-		
-		return loadData.RunChain( SceneLoadWaitImpl(sceneLoadOp, loadData) );
+		var sceneTask		= new LoadSceneTask(context)
+		{
+			Scene = scene,
+			DelaySceneActivation = !p.ActivateOnLoad
+		};
+
+		return sceneTask.Run( SceneLoadWaitImpl(sceneLoadOp, sceneTask) );
 	}
 
 	private					T?						LoadFinalising<T>			( Object? obj ) where T : Object				
