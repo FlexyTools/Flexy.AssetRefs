@@ -51,15 +51,7 @@ public class AssetsLoader_Resources : AssetsLoader
 		var address			= @ref.Uid;
 		var asset			= Resources.Load<ResourceRef>($"Fun.Flexy/AssetRefs/{address}");
 		var sceneLoadOp		= SceneManager.LoadSceneAsync( asset.Name, new LoadSceneParameters( p.LoadMode, p.PhysicsMode ) );
-		sceneLoadOp.allowSceneActivation = p.ActivateOnLoad;
-		sceneLoadOp.priority = p.Priority;
-		var scene			= SceneManager.GetSceneAt(SceneManager.sceneCount - 1);	
-		
-		var sceneTask		= new LoadSceneTask(context)
-		{
-			Scene = scene,
-			DelaySceneActivation = !p.ActivateOnLoad
-		};
+		var sceneTask		= new LoadSceneTask(context, p, SceneManager.GetSceneAt(SceneManager.sceneCount - 1));
 
 		return sceneTask.Run( SceneLoadWaitImpl(sceneLoadOp, sceneTask) );
 	}

@@ -2,6 +2,8 @@ namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
 public class ResourcesPopulateRefs : IPipelineTask
 {
+	[SerializeField]	Boolean		AddScenesToBuildSettings;
+
 	public void Run( Pipeline ppln, Context ctx )
 	{
 		Debug.Log			( $"[ResourcesIRefSourceBuilder] - CreateResourcesAssetForeachAssetRefSource" );
@@ -38,12 +40,14 @@ public class ResourcesPopulateRefs : IPipelineTask
 				}
 				
 				rref.Ref = r;
+				
+				if (r is SceneAsset s)
+					rref.Name = s.name;
+				
 				EditorUtility.SetDirty( rref );
 				
-				if( r is SceneAsset sa )
+				if (AddScenesToBuildSettings && r is SceneAsset sa)
 				{
-					rref.Name = sa.name;
-						
 					var scenesArray	= EditorBuildSettings.scenes;
 					var scenePath	= AssetDatabase.GetAssetPath( sa );
 					var isAdded		= false;

@@ -53,8 +53,7 @@ public class BuildPlayer : IPipelineTask
 		if (!Directory.Exists(outputDirectory))
 			Directory.CreateDirectory(outputDirectory);
         
-		// Get scenes to build (all enabled scenes in build settings)
-		var scenes = GetEnabledScenes();
+		var scenes = ctx.Get<SceneList>().GetBuildScenes();
         
 		var buildPlayerOptions = new BuildPlayerOptions
 		{
@@ -86,21 +85,5 @@ public class BuildPlayer : IPipelineTask
 		{
 			Debug.LogError("Build failed");
 		}
-	}
-	
-	private String[] GetEnabledScenes()
-	{
-		var scenes = EditorBuildSettings.scenes;
-		var enabledScenes = new List<String>();
-        
-		foreach (var scene in scenes)
-		{
-			if (scene.enabled)
-			{
-				enabledScenes.Add(scene.path);
-			}
-		}
-        
-		return enabledScenes.ToArray();
 	}
 }

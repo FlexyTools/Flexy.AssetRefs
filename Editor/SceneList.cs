@@ -7,32 +7,51 @@ public class SceneList: IEnumerable<Object>, ITasksTabView
 	private		List<SceneAsset> 		_refs		= new( 32 );
 	private		HashSet<SceneAsset>?	_refsSet	= default;
 		
-	public		void	Add			( SceneAsset? @ref )				
+	public		void		Add			( SceneAsset? @ref )				
 	{
 		if (@ref == null)
 			return;
 		
 		_refs.Add( @ref );
 	}
-	public		void	AddRange	( IEnumerable<SceneAsset?> list )	
+	public		void		AddRange	( IEnumerable<SceneAsset?> list )	
 	{
 		foreach (var o in list)
 			Add( o );
 	}
-	public		Boolean	Exists		( SceneAsset @ref )					
+	public		Boolean		Exists		( SceneAsset @ref )					
 	{
 		if( _refsSet == null )
 			_refsSet = new( _refs );
 			
 		return _refsSet.Contains( @ref );
 	}
-	public		void	Remove		( SceneAsset @ref )					
+	public		void		Remove		( SceneAsset @ref )					
 	{
 		_refs.Remove( @ref );
 	}
-	public		void	RemoveAt	( Int32 index )						
+	public		void		RemoveAt	( Int32 index )						
 	{
 		_refs.RemoveAt( index );
+	}
+
+	public		String[]	GetBuildScenes		( )							
+	{
+		var buildScenes	= EditorBuildSettings.scenes;
+		var scenes		= new List<String>();
+        
+		foreach (var scene in buildScenes)
+			if (scene.enabled)
+				scenes.Add(scene.path);
+        
+		AddScenesToList(scenes);
+        
+		return scenes.ToArray();
+	}
+	public		void		AddScenesToList		( List<String> scenes )		
+	{
+		foreach (var scn in this)
+			scenes.Add( AssetDatabase.GetAssetPath(scn) );
 	}
 	
 	public IEnumerator<Object>	GetEnumerator	( )	=> _refs.GetEnumerator( );
