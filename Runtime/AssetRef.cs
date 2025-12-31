@@ -53,15 +53,15 @@ public struct AssetRef : IRefLike, IEquatable<AssetRef>
 
 	public static	AssetRef<T>		Parse<T>( String address ) where T: Object		
 	{
-		if( String.IsNullOrWhiteSpace( address ) )
+		if (String.IsNullOrWhiteSpace( address ))
 			return default;
 
 		var uid		= Hash128.Parse( address[..32] ); 
 		var subId	= address.Length == 32 ? 0 : Int64.Parse(address[33..^1]);
 		
-		return new( uid, subId );
+		return new(uid, subId);
 	}
-	public	static	AssetsLoader	AssetsLoader	= new AssetsLoader_Resources( );
+	public	static	AssetsLoader	AssetsLoader	= new AssetsLoader_Resources();
 }
 	
 public interface IRefLike
