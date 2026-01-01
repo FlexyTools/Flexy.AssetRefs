@@ -46,7 +46,7 @@ public class SceneList: IEnumerable<Object>, ITasksTabView
         
 		AddScenesToList(scenes);
         
-		return scenes.ToArray();
+		return scenes.Distinct().ToArray();
 	}
 	public		void		AddScenesToList		( List<String> scenes )		
 	{
