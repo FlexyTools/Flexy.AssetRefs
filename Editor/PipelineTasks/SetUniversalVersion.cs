@@ -8,7 +8,10 @@ public class SetUniversalVersion : IPipelineTask
 	[SerializeField]	EMajorType	_major;
 	[SerializeField]	EMinorType	_minor;
 	[SerializeField]	EBuildTime	_buildTime;
+	
+	[Header( "Build Number")]
 	[SerializeField]	Boolean		_setBuildNumber = true;
+	[SerializeField]	Int32		_buildNumberOffset;
 
 	public void Run( Pipeline ppln, Context ctx )
 	{
@@ -76,10 +79,12 @@ public class SetUniversalVersion : IPipelineTask
 		
 		if (_setBuildNumber)
 		{
-			PlayerSettings.Android.bundleVersionCode	= Int32.Parse(versionString.Replace(".", ""));
-			PlayerSettings.macOS.buildNumber			= versionString;
-			PlayerSettings.tvOS.buildNumber				= versionString;
-			PlayerSettings.iOS.buildNumber				= versionString;
+			var buildNumber = Int32.Parse(versionString.Replace(".", "")) + _buildNumberOffset;
+			
+			PlayerSettings.Android.bundleVersionCode	= buildNumber;
+			PlayerSettings.macOS.buildNumber			= buildNumber.ToString();
+			PlayerSettings.tvOS.buildNumber				= buildNumber.ToString();
+			PlayerSettings.iOS.buildNumber				= buildNumber.ToString();
 		}
 		
 		if (String.IsNullOrWhiteSpace(_versionTag))
