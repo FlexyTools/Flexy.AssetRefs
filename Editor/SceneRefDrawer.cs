@@ -15,15 +15,15 @@
 			var assetRef		= new AssetRef<SceneAsset>( refUid );
 			
 			if( !_assets.ContainsKey( property.propertyPath ) )
-				_assets[property.propertyPath] = (assetRef, AssetsLoader.EditorLoadAsset( assetRef ) );
+				_assets[property.propertyPath] = (assetRef, AssetLoader.EditorLoadAsset( assetRef ) );
 			
 			_assets.TryGetValue( property.propertyPath, out var assetData );
 			
 			if( assetData.@ref != assetRef )
-				assetData = _assets[property.propertyPath] = ( assetRef, AssetsLoader.EditorLoadAsset( assetRef ) );
+				assetData = _assets[property.propertyPath] = ( assetRef, AssetLoader.EditorLoadAsset( assetRef ) );
 			
 			if( assetData.asset == null && refUid != default )
-				assetData.asset = AssetsLoader.EditorLoadAsset( assetRef );
+				assetData.asset = AssetLoader.EditorLoadAsset( assetRef );
 			
 			EditorGUI.BeginChangeCheck( );
 			
@@ -33,7 +33,7 @@
 			{
 				_assets[property.propertyPath] = (assetRef, newobj);
 				
-				var @ref = AssetsLoader.EditorGetAssetAddress( newobj );
+				var @ref = AssetLoader.EditorGetAssetAddress( newobj );
 				uidProp.hash128Value = @ref.Uid;
 			}
 			

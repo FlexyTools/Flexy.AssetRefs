@@ -26,7 +26,7 @@ public class ResourcesPopulateRefs : IPipelineTask
 					continue;
 				}
 
-				var assetAddress	= AssetsLoader.EditorGetAssetAddress( r );
+				var assetAddress	= AssetLoader.EditorGetAssetAddress( r );
 				var path			= $"Assets/Resources/Fun.Flexy/AssetRefs/{assetAddress}.asset";
 				
 				var rref			= AssetDatabase.LoadAssetAtPath<ResourceRef>( path );

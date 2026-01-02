@@ -6,7 +6,7 @@
   "description": "Flexy.AssetRefs provides an efficient way to indirectly reference assets and scenes, offering cleaner alternative to Unity Addressables. Designed for flexibility, Flexy.AssetRefs is easy to use from the prototyping stage. It is well-suited for small projects where Addressables can create more issues than they solve and easily expand to more complex systems later.",
   "changelog": "Changelog.md",
   "documentationUrl": "https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.AssetRefs/Readme.md",
-  "licensesUrl": "https://github.com/FlexyTools/Flexy.AssetRefs/blob/6.0-main/LICENSE.md",
+  "licensesUrl": "LICENSE.md",
   "keywords": [
     "Asset",
     "Reference",

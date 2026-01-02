@@ -2,7 +2,7 @@ using Flexy.AssetRefs.Extra;
 
 namespace Flexy.AssetRefs;
 
-public abstract class AssetsLoader
+public abstract class AssetLoader
 {
 	public		 			UniTask<T?>				LoadAssetAsync<T>			( AssetRef @ref ) where T:Object		
 	{

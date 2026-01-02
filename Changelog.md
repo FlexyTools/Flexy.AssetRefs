@@ -6,15 +6,6 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [6.0.0]
 
-### Fixed
-
-- Fixed Unloading of scenes on load dummy scene
-- Fixed AssetLoader EditorGetAssetAddress to return only guid for any Prefab
-- Fixed unconsistent AssetRef loading in editor vs build. Editor was capable for load any asset on path while build can only load exact asset on address
-- Fixed loading incorrect asset in editor and inspector
-- Fixed AddRefsFromDirectory now correctly adds scenes when filtered
-- Fixed scene loading in editor when simulate runtime behaviour and scene is not in build settings
-
 ### Added
 
 - Added SceneList
@@ -24,6 +15,7 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 - Changed version to 6.0.0
+- Changed moved Documentation to Flexy.Docs repo
 - Changed LoadSceneTask now class with chain loading
 - Changed better editor menu naming
 - Changed Moved SceneLoading from AssetsLoader to SceneLoader
@@ -34,14 +26,16 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Removed SceneLoadData - merged to LoadSceneTask
 
-## [5.1.0] - 2026-01-01
-
 ### Fixed
 
 - Fixed Unloading of scenes on load dummy scene
 - Fixed AssetLoader EditorGetAssetAddress to return only guid for any Prefab
 - Fixed unconsistent AssetRef loading in editor vs build. Editor was capable for load any asset on path while build can only load exact asset on address
 - Fixed loading incorrect asset in editor and inspector
+- Fixed AddRefsFromDirectory now correctly adds scenes when filtered
+- Fixed scene loading in editor when simulate runtime behaviour and scene is not in build settings
+
+## [5.1.0] - 2026-01-01
 
 ### Added
 
@@ -65,6 +59,13 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Changed better package naming
 - Changed better editor menu naming
+
+### Fixed
+
+- Fixed Unloading of scenes on load dummy scene
+- Fixed AssetLoader EditorGetAssetAddress to return only guid for any Prefab
+- Fixed unconsistent AssetRef loading in editor vs build. Editor was capable for load any asset on path while build can only load exact asset on address
+- Fixed loading incorrect asset in editor and inspector
 
 ## [5.0.3] - 2025-03-30
 

@@ -46,7 +46,7 @@ public static class		RefsCollector
 				
 			if (fieldObj is IRefLike r1)
 			{
-				var asset = AssetsLoader.EditorLoadAssetRaw( new( r1.Uid, r1.SubId ) );
+				var asset = AssetLoader.EditorLoadAssetRaw( new( r1.Uid, r1.SubId ) );
 				if( asset != null )
 					result.Add( asset );
 			}
@@ -61,7 +61,7 @@ public static class		RefsCollector
 						
 					if (e is IRefLike r2)
 					{
-						var asset = AssetsLoader.EditorLoadAssetRaw( new( r2.Uid, r2.SubId ) );
+						var asset = AssetLoader.EditorLoadAssetRaw( new( r2.Uid, r2.SubId ) );
 						if( asset != null )
 							result.Add( asset );
 					}

@@ -61,7 +61,7 @@ public struct AssetRef : IRefLike, IEquatable<AssetRef>
 		
 		return new(uid, subId);
 	}
-	public	static	AssetsLoader	AssetsLoader	= new AssetsLoader_Resources();
+	public	static	AssetLoader		AssetLoader	= new AssetLoaderResources();
 }
 	
 public interface IRefLike

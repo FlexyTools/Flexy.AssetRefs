@@ -143,11 +143,7 @@ public abstract class SceneLoader
 public class LoadSceneTask : IProgress<Single>
 {
 	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-	private static void StaticClear( ) 
-	{
-		NewSceneCreatedAndLoadingStarted	= null;
-		NewLoadSceneTaskStarted				= null;
-	}
+	private static void StaticClear( ) => NewLoadSceneTaskStarted				= null;
 
 	public LoadSceneTask( GameObject context, Parameters p, Scene scene = default, Single rangeMin = 0, Single rangeMax = 1, String? description = "Loading..." )
 	{
@@ -182,8 +178,6 @@ public class LoadSceneTask : IProgress<Single>
 	public	Boolean			DelaySceneActivation	=> !Params.AllowActivation;
 	public	Boolean			IsDone					=> ChainTask.Status != UniTaskStatus.Pending;
 
-	[Obsolete("Use NewLoadSceneTaskStarted instead")]
-	public static event		Action<Scene,Scene>?	NewSceneCreatedAndLoadingStarted;
 	public static event		Action<LoadSceneTask>?	NewLoadSceneTaskStarted;
 	
 	public LoadSceneTask	Run						( UniTask<Scene> firstSceneTask )			
@@ -221,9 +215,6 @@ public class LoadSceneTask : IProgress<Single>
 	{
 		await WaitForSceneLoadStart();
 		
-		try						{ NewSceneCreatedAndLoadingStarted?.Invoke( Context.scene, Scene );	}			
-		catch( Exception ex )	{ Debug.LogException( ex );											}
-		
 		try						{ NewLoadSceneTaskStarted?.Invoke( this );	}			
 		catch( Exception ex )	{ Debug.LogException( ex );					}
 
@@ -253,15 +244,7 @@ public class LoadSceneTask : IProgress<Single>
 		Int32				Priority		= 100, 
 		Boolean				AllowActivation	= true,  
 		Boolean				SetActive		= false
-	)
-	{
-		[Obsolete("Use AllowActivation instead")]
-		public Boolean		ActivateOnLoad	
-		{
-			get => AllowActivation; 
-			set => AllowActivation = value; 
-		}
-	}
+	);
 }
 
 [Flags]

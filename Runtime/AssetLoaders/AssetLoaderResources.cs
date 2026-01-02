@@ -1,6 +1,6 @@
 ﻿namespace Flexy.AssetRefs.AssetLoaders;
 
-public class AssetsLoader_Resources : AssetsLoader
+public class AssetLoaderResources : AssetLoader
 {
 	protected override async UniTask<T?>	LoadAssetAsync_Impl<T>		( AssetRef @ref )	where T : class		
 	{

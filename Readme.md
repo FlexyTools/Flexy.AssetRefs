@@ -1,18 +1,18 @@
-﻿![Image Sequence_038_0002](https://github.com/user-attachments/assets/792efb83-33db-4c8c-8e92-2c8e5a363522)
-[Docs and Use Cases](Documentation.md)
-| [FAQ](FAQ.md)
-| [Unity Forum](https://discussions.unity.com/t/flexy-assetrefs-v5-0-0-released/1605799) 
-| [Asset Store](https://u3d.as/3u78)
+﻿![Img](https://github.com/user-attachments/assets/792efb83-33db-4c8c-8e92-2c8e5a363522)
+[Flexy.Tools](https://github.com/FlexyTools/Flexy.Docs/tree/main) / [Framework](https://github.com/FlexyTools/Flexy.Docs/tree/main/Framework) / Flexy.AssetRefs
 
-**Flexy.AssetRefs**
-===================
+# Flexy.AssetRefs
 
 Load assets **on demand** without Addressables and Bundles  
 Almost **zero** editor setup!  
 Fast, extendable, production-proven and **Open Source!**
 
-**Want to load assets ondemand but**
------------------------
+[Docs and Use Cases](https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.AssetRefs/Readme.md)
+| [Unity Forum](https://discussions.unity.com/t/flexy-assetrefs-v5-0-0-released/1605799)
+| [Asset Store](https://u3d.as/3u78)
+
+## Want to load assets ondemand but
+
 - don't want to mess around with Addressables
 - don't want to use any type of Bundles
 - don't want to manage addressable assets separately
@@ -30,8 +30,8 @@ Designed for flexibility, Flexy.AssetRefs is easy to use from the prototyping st
 It is well-suited for small projects where Addressables can create more issues than they solve and easily expand to 
 more complex systems later.
 
-**Key Strengths**
-------------------
+## Key Strengths
+
 - It is Open Source :)
 - Fast: pure struct based 
 - ECS-Compatible: because it is struct
@@ -51,8 +51,8 @@ more complex systems later.
 See [Docs and Use Cases](Documentation.md) for usage samples   
 
 
-**Flexy.AssetRefs is**
------------------------
+## Flexy.AssetRefs is
+
 **Modular and Simple to use:** we separate the reference system from complex asset bundles bundling and downloading. 
 Flexy.AssetRefs focuses only on asset references for on-demand loading. Flexy.Bundles adds bundles building 
 and downloading capabilities. This modular approach avoids the complexity of a heavy solution like Addressables
@@ -66,15 +66,9 @@ and can be replaced with your own implementation. It is only 5 virtual methods t
 **Already Used in Games:** Sniper League, Animals Happy Run, Cyberstrike, Combat Master
 **In production on platforms:** iOS, Android, Windows, Linux, Mac
 
-**Roadmap**
------------------------
 
-**Auto unloaders:** will add few Api's to help auto unload loaded assets    
-**Unity 6 Awaitables:** We think about moving Api to Unity 6 Awaitables in asset version 6.x  
+## Technical details
 
-
-**Technical details**
----------------------
 - Ref is struct with 2 fields: Hash128 & Int64
 - C# Extensions based load methods
 - AssetLoader interface is 5 virtual methods
@@ -83,7 +77,6 @@ and can be replaced with your own implementation. It is only 5 virtual methods t
 - Native C# Nullability annotations
 - C# 10
 - Fast Enter Play Mode support
-
 
 
 This package uses cropped version of UniTask package under MIT License  
