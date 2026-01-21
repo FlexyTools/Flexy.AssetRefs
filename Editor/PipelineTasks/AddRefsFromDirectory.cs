@@ -31,7 +31,7 @@ public class AddRefsFromDirectory : IPipelineTask
 				if( Path.GetDirectoryName( path ) != currDir )
 					continue;
 				
-			if (noFilter || path.EndsWith(".unity"))
+			if (noFilter || path.EndsWith(".unity") || path.EndsWith(".prefab"))
 			{
 				var asset  = AssetDatabase.LoadMainAssetAtPath( path );
 				refs.Add( asset );
