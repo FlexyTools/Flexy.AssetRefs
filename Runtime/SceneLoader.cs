@@ -67,7 +67,18 @@ public abstract class SceneLoader
 					scenesToUnload.Add( SceneManager.GetSceneAt(i) );
 			}
 		
-			var dummy	= SceneManager.CreateScene("Dummy");
+			var dummySceneName = "Dummy";
+			
+			while(true)
+			{
+				var existingDummy = SceneManager.GetSceneByName(dummySceneName);
+				if (!existingDummy.IsValid())
+					break;
+				
+				dummySceneName += "2";
+			}
+		
+			var dummy	= SceneManager.CreateScene(dummySceneName);
 			sceneTask.Scene	= dummy;
 			
 			await UniTask.NextFrame();
