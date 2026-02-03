@@ -12,69 +12,72 @@ public class ResourcesPopulateRefs : IPipelineTask
 		
 		try						
 		{
-			var refs = ctx.Get<RefsList>( );
+			var refs = ctx.Get<RefsList>();
 				
-			AssetDatabase.StartAssetEditing( );
+			AssetDatabase.StartAssetEditing();
 		
 			var ress = refs;
 			
-			foreach ( var r in ress )
+			foreach (var @ref in ress)
 			{
-				if ( !r )
+				if (@ref.IsNone)
 				{
 					Debug.LogError( $"[ResourcesIRefSourceBuilder] - CreateResourcesAssetForeachAssetRefSource: resource is null in {ppln.name} collector. Skipped", ppln );
 					continue;
 				}
 
-				var assetAddress	= AssetLoader.EditorGetAssetAddress( r );
+				var assetAddress	= @ref;
 				var path			= $"Assets/Resources/Fun.Flexy/AssetRefs/{assetAddress}.asset";
 				
-				var rref			= AssetDatabase.LoadAssetAtPath<ResourceRef>( path );
+				var rref			= AssetDatabase.LoadAssetAtPath<ResourceRef>(path);
 				
-				if( rref == null )
+				if (rref == null)
 				{
-					rref = ScriptableObject.CreateInstance<ResourceRef>( );
+					rref = ScriptableObject.CreateInstance<ResourceRef>();
 					
 					try						{ AssetDatabase.CreateAsset( rref, path ); }
-					catch (Exception ex)	{ Debug.LogException( ex ); }
+					catch (Exception ex)	{ Debug.LogException(ex); }
 				}
 				
-				rref.Ref = r;
+				rref.Ref = AssetLoader.EditorLoadAssetRaw(@ref);
 				
-				if (r is SceneAsset s)
-					rref.Name = s.name;
+				if (rref.Ref is SceneAsset scn)
+					rref.Name = scn.name;
 				
 				EditorUtility.SetDirty( rref );
 				
-				if (AddScenesToBuildSettings && r is SceneAsset sa)
+				if (AddScenesToBuildSettings && rref.Ref is SceneAsset sa)
 				{
 					var scenesArray	= EditorBuildSettings.scenes;
-					var scenePath	= AssetDatabase.GetAssetPath( sa );
+					var scenePath	= AssetDatabase.GetAssetPath(sa);
 					var isAdded		= false;
 						
-					foreach ( var scene in scenesArray )
+					foreach (var scene in scenesArray)
 					{
-						if( scene.path == scenePath )
+						if (scene.path == scenePath)
 						{
 							isAdded = true;
 							break;
 						}
 					}
 						
-					if ( !isAdded )
+					if (!isAdded)
 					{
-						var scenes = scenesArray.ToList( );
-						scenes.Add( new( scenePath, true ) );
-						EditorBuildSettings.scenes = scenes.ToArray( );
+						var scenes = scenesArray.ToList();
+						scenes.Add(new( scenePath, true ));
+						EditorBuildSettings.scenes = scenes.ToArray();
 					}
 				}
+				
+				if (rref.Ref is not GameObject) // Resources.UnloadAsset dont like GameObjects 
+					Resources.UnloadAsset(rref.Ref);
 			}
 		}
 		finally
 		{
-			AssetDatabase.StopAssetEditing( );
-			AssetDatabase.SaveAssets( );
-			AssetDatabase.Refresh( ImportAssetOptions.ForceSynchronousImport );
+			AssetDatabase.StopAssetEditing();
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
 		}
 	}
 }

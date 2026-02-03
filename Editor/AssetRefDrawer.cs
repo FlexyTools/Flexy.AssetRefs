@@ -13,13 +13,13 @@ namespace Flexy.AssetRefs.Editor
 		
 		public override		void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )	
 		{
-			OnGUI( position, property, label, GetRefType( fieldInfo ) );
+			OnGUI( position, property, label, GetRefType(fieldInfo) );
 		}
 		public override		Single	GetPropertyHeight	( SerializedProperty property, GUIContent label )					
 		{
-			var addressProp		= property.FindPropertyRelative( "_uid" );
+			var addressProp		= property.FindPropertyRelative("_uid");
 			
-			if ( DrawPreview( addressProp, fieldInfo ) && !ArrayTableDrawer.DrawingInTableGUI )
+			if (DrawPreview( addressProp, fieldInfo ) && !ArrayTableDrawer.DrawingInTableGUI)
 				return EditorGUI.GetPropertyHeight( addressProp, label, true ) + ImageHeight + 10;
 			
 			return EditorGUI.GetPropertyHeight( addressProp, label, true );
@@ -35,12 +35,12 @@ namespace Flexy.AssetRefs.Editor
 			var assetRef		= new AssetRef( uidProp.hash128Value, subIdProp.longValue );
 			
 			if (!_assets.ContainsKey( property.propertyPath ))
-			 	_assets[property.propertyPath] = ( assetRef, AssetLoader.EditorLoadAssetRaw( assetRef ) );
+			 	_assets[property.propertyPath] = (assetRef, AssetLoader.EditorLoadAssetRaw(assetRef));
 			
 			_assets.TryGetValue( property.propertyPath, out var assetData );
 
 			if (assetData.@ref != assetRef)
-				assetData = _assets[property.propertyPath] = ( assetRef, AssetLoader.EditorLoadAssetRaw( assetRef ) );
+				assetData = _assets[property.propertyPath] = (assetRef, AssetLoader.EditorLoadAssetRaw(assetRef));
 			
 			var drawPreview		= DrawPreview( uidProp, fieldInfo ); 
 			var isInline		= ArrayTableDrawer.DrawingInTableGUI;
@@ -48,10 +48,10 @@ namespace Flexy.AssetRefs.Editor
 			if (drawPreview & isInline)
 				position.xMin	+= 80;
 			
-			EditorGUI.BeginChangeCheck( );
+			EditorGUI.BeginChangeCheck();
 			var newobj	= EditorGUI.ObjectField( position, label, assetData.asset, type, false );
 			
-			var isChanged = EditorGUI.EndChangeCheck( );
+			var isChanged = EditorGUI.EndChangeCheck();
 			
 			if (newobj is SceneAsset)
 			{
@@ -64,8 +64,8 @@ namespace Flexy.AssetRefs.Editor
 			
 			if (isChanged)
 			{
-				var @ref	= AssetLoader.EditorGetAssetAddress( newobj );
-				newobj		= AssetLoader.EditorLoadAssetRaw( @ref );
+				var @ref	= AssetLoader.EditorGetAssetAddress(newobj);
+				newobj		= AssetLoader.EditorLoadAssetRaw(@ref);
 				
 				uidProp.hash128Value			= @ref.Uid; 
 				subIdProp.longValue				= @ref.SubId;

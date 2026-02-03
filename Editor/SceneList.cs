@@ -2,37 +2,37 @@ using System.Collections;
 
 namespace Flexy.AssetRefs.Editor;
 
-public class SceneList: IEnumerable<Object>, ITasksTabView
+public class SceneList: IEnumerable<SceneRef>, ITasksTabView
 {
-	private		List<SceneAsset> 		_refs		= new( 32 );
-	private		HashSet<SceneAsset>?	_refsSet	= default;
+	private		List<SceneRef> 		_refs		= new(32);
+	private		HashSet<SceneRef>?	_refsSet	= default;
 		
-	public		void		Add			( SceneAsset? @ref )				
+	public		void		Add			( SceneRef @ref )					
 	{
-		if (@ref == null)
+		if (@ref.IsNone)
 			return;
 		
-		_refs.Add( @ref );
+		_refs.Add(@ref);
 	}
-	public		void		AddRange	( IEnumerable<SceneAsset?> list )	
+	public		void		AddRange	( IEnumerable<SceneRef> list )		
 	{
-		foreach (var o in list)
-			Add( o );
+		foreach (var @ref in list)
+			Add(@ref);
 	}
-	public		Boolean		Exists		( SceneAsset @ref )					
+	public		Boolean		Exists		( SceneRef @ref )					
 	{
-		if( _refsSet == null )
-			_refsSet = new( _refs );
+		if (_refsSet == null)
+			_refsSet = new(_refs);
 			
-		return _refsSet.Contains( @ref );
+		return _refsSet.Contains(@ref);
 	}
-	public		void		Remove		( SceneAsset @ref )					
+	public		void		Remove		( SceneRef @ref )					
 	{
-		_refs.Remove( @ref );
+		_refs.Remove(@ref);
 	}
 	public		void		RemoveAt	( Int32 index )						
 	{
-		_refs.RemoveAt( index );
+		_refs.RemoveAt(index);
 	}
 
 	public		String[]	GetBuildScenes		( )							
@@ -50,16 +50,16 @@ public class SceneList: IEnumerable<Object>, ITasksTabView
 	}
 	public		void		AddScenesToList		( List<String> scenes )		
 	{
-		foreach (var scn in this)
-			scenes.Add( AssetDatabase.GetAssetPath(scn) );
+		foreach (var scn in _refs)
+			scenes.Add( AssetDatabase.GUIDToAssetPath(scn.Uid.ToGUID()) );
 	}
 	
-	public IEnumerator<Object>	GetEnumerator	( )	=> _refs.GetEnumerator( );
-	IEnumerator IEnumerable		.GetEnumerator	( )	=> GetEnumerator( );
+	public IEnumerator<SceneRef>GetEnumerator	( )	=> _refs.GetEnumerator();
+	IEnumerator IEnumerable		.GetEnumerator	( )	=> GetEnumerator();
 
 	public VisualElement		CreateTabGui	( )	
 	{
-		var collectedRefs		= this.Where( a => a ).Select( a => ( AssetDatabase.GetAssetPath( a ), a ) ).OrderBy( i => i.Item1 ).ToList( );
+		var collectedRefs		= this.Where( a => !a.IsNone ).Select( a => ( AssetDatabase.GUIDToAssetPath(a.Uid.ToGUID()), a ) ).OrderBy( i => i.Item1 ).ToList();
 		var collectedRefsGui	= new VisualElement { name = "Scene List" };
 		
 		const int itemHeight = 16;
@@ -67,7 +67,7 @@ public class SceneList: IEnumerable<Object>, ITasksTabView
 		{
 			var row = new VisualElement{ style = { flexDirection = FlexDirection.Row }};
 			row.Add( new Label {style = { width = 300 } } );
-			row.Add( new Label( ) );
+			row.Add( new Label() );
 			return row;
 		};
 		Action<VisualElement, Int32> bindItem	= (e, i)	=>
@@ -76,10 +76,10 @@ public class SceneList: IEnumerable<Object>, ITasksTabView
 			(e.hierarchy[1] as Label)!.text		= Path.GetDirectoryName( collectedRefs[i].Item1 );
 		};
 		
-		Label			collectedCount	= new( ){ text = $"Count: {collectedRefs.Count}" };
-		ListView		previewList		= new( collectedRefs, itemHeight, makeItem, bindItem ) { selectionType = SelectionType.Single };
+		Label		collectedCount	= new(){ text = $"Count: {collectedRefs.Count}" };
+		ListView	previewList		= new( collectedRefs, itemHeight, makeItem, bindItem ) { selectionType = SelectionType.Single };
 
-		previewList.selectionChanged	+= objects => EditorGUIUtility.PingObject( (objects.First( ) as (String, Object)?)?.Item2  );
+		previewList.selectionChanged	+= objects => EditorGUIUtility.PingObject( (objects.First() as (String, Object)?)?.Item2  );
 
 		// _previewList.style.flexGrow = 1.0f;
 		previewList.style.maxHeight = 800;
@@ -92,10 +92,10 @@ public class SceneList: IEnumerable<Object>, ITasksTabView
 
 	public static class Internal
 	{
-		public static void ReplaceRefs	( SceneList refs, List<SceneAsset> list )
+		public static void ReplaceRefs	( SceneList refs, List<SceneRef> list )
 		{
-			refs._refs.Clear( );
-			refs._refs.AddRange( list );
+			refs._refs.Clear();
+			refs._refs.AddRange(list);
 		}
 	}
 }

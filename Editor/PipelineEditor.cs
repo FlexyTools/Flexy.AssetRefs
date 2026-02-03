@@ -15,11 +15,11 @@ namespace Flexy.AssetRefs.Editor
 			return root;
 		}
 	
-		private VisualElement			_tabs			= null!;
-		private VisualElement			_tabsContent	= null!;
-		private VisualElement			_tabControl		= null!;
+		private VisualElement	_tabs			= null!;
+		private VisualElement	_tabsContent	= null!;
+		private VisualElement	_tabControl		= null!;
 
-		public VisualElement CreatePreviewGui( )
+		public	VisualElement	CreatePreviewGui	( )	
 		{
 			var root	= new VisualElement { name = "Additional UI" };
 			var buttons	= new VisualElement { name = "Buttons", style = { flexDirection = FlexDirection.Row, marginBottom = 15} };
@@ -73,13 +73,13 @@ namespace Flexy.AssetRefs.Editor
 			}
 		}
 	
-		private void AddTab( String tabName, ITasksTabView content )
+		private void AddTab		( String tabName, ITasksTabView content )	
 		{
 			var index = _tabs.childCount;
 			_tabs.Add( new Button( () => SelectTab( index ) ){ text = tabName, style = { borderBottomLeftRadius = 0, borderBottomRightRadius = 0, marginLeft = 0, marginRight = 0}} );
 			_tabsContent.Add( new(){ userData =content } );
 		}
-		private void SelectTab( Int32 index )
+		private void SelectTab	( Int32 index )								
 		{
 			if( _tabs.hierarchy.childCount <= index || _tabsContent.hierarchy.childCount <= index )
 				return;
@@ -140,7 +140,7 @@ namespace Flexy.AssetRefs.Editor
 			return foldout;
 		}
 		
-		private			void			BuildUI				( SerializedProperty property, Foldout foldout, VisualElement header )
+		private			void			BuildUI					( SerializedProperty property, Foldout foldout, VisualElement header )
 		{
 			header	.Unbind	();
 			header	.Clear	();

@@ -6,7 +6,7 @@ namespace Flexy.AssetRefs.Pipelines;
 
 public interface IAssetRefsSource	
 {
-	public List<Object> CollectAssets( ); 
+	public List<AssetRef> CollectAssets( ); 
 }
 
 public static class		RefsCollector		 

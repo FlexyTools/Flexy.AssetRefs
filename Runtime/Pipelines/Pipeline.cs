@@ -38,8 +38,8 @@ namespace Flexy.AssetRefs.Pipelines
 						continue;
 
 					#if UNITY_EDITOR
-					Debug.Log($"{name}, {UnityEditor.ObjectNames.NicifyVariableName( et.Task.GetType().Name )}, progress: {i/(Single)EnabledTasks.Length}");
-					UnityEditor.EditorUtility.DisplayProgressBar(name, UnityEditor.ObjectNames.NicifyVariableName( et.Task.GetType().Name ), i/(Single)EnabledTasks.Length);
+					Debug.Log($"{name}: Run task: {i+1}/{EnabledTasks.Length} - {UnityEditor.ObjectNames.NicifyVariableName( et.Task.GetInfo() )}");
+					UnityEditor.EditorUtility.DisplayProgressBar(name, UnityEditor.ObjectNames.NicifyVariableName( et.Task.GetInfo() ), i/(Single)EnabledTasks.Length);
 					#endif
 					et.Task.Run(this, ctx);
 				}
@@ -127,7 +127,8 @@ namespace Flexy.AssetRefs.Pipelines
 	
 	public interface IPipelineTask
 	{
-		public void Run( Pipeline ppl, Context ctx );
+		public void		Run			( Pipeline ppl, Context ctx );
+		public String	GetInfo		() => GetType().Name;
 	}
 	
 	#if UNITY_EDITOR
@@ -136,7 +137,8 @@ namespace Flexy.AssetRefs.Pipelines
 	{
 		[SerializeField]	Pipeline	_pipeline = null!;
 
-		public void Run( Pipeline ppln, Context ctx ) => _pipeline.RunTasks(ctx);
+		public void		Run		( Pipeline ppln, Context ctx )	=> _pipeline.RunTasks(ctx);
+		public String	GetInfo	( )								=> GetType().Name + ": " + _pipeline.name;
 	}
 	#endif
 }

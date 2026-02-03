@@ -1,7 +1,7 @@
 #if UNITY_EDITOR
 namespace Flexy.AssetRefs;
 
-internal static class EditorBehaviourAndMenu
+public static class EditorBehaviourAndMenu
 {
 	private static	Boolean?	_runtimeBehaviorEnabled;
 	public static	Boolean		RuntimeBehaviorEnabled		

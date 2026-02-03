@@ -11,6 +11,6 @@ public class AddRefsDirect : IPipelineTask
 	{
 		var refs = ctx.Get<RefsList>( );
 			
-		refs.AddRange( _refs.Where( r => r is not DefaultAsset ) );
+		refs.AddRange( _refs.Where( r => r is not DefaultAsset ).Select( AssetLoader.EditorGetAssetAddress ) );
 	}
 }

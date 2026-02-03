@@ -110,6 +110,23 @@ public abstract class AssetLoader
 		
 		return default;
 	}
+	public	static			Type?					EditorGetAssetType			( AssetRef @ref )						
+	{
+#if UNITY_EDITOR
+		if (@ref.IsNone)
+			return null;
+
+		if (@ref.SubId == 0)
+			return UnityEditor.AssetDatabase.GetMainAssetTypeFromGUID(@ref.Uid.ToGUID());
+
+		var path = UnityEditor.AssetDatabase.GUIDToAssetPath(@ref.Uid.ToGUID());
+		var type = UnityEditor.AssetDatabase.GetTypeFromPathAndFileID(path, @ref.SubId);
+		
+		return type;
+#endif
+		
+		return null;
+	}
 	
 	// Virtual interface for loding customisation
 	protected abstract		UniTask<T?>				LoadAssetAsync_Impl<T>		( AssetRef @ref ) where T:Object;

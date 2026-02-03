@@ -18,35 +18,35 @@ public class AddRefsFromDirectory : IPipelineTask
 		var types		= TypeNamesOptional.Split( ',', StringSplitOptions.RemoveEmptyEntries ).Select( s => s.Trim( ) ).ToArray( );
 		var assetGuids	= new List<String>( );
 
-		if( noFilter )
-			assetGuids.AddRange( AssetDatabase.FindAssets( "", new []{ currDir } ) );
+		if (noFilter)
+			assetGuids.AddRange(AssetDatabase.FindAssets("", new []{currDir}));
 		else
-			foreach (var t in types) assetGuids.AddRange( AssetDatabase.FindAssets( $"t:{t}", new []{ currDir } ) );	
+			foreach (var t in types) assetGuids.AddRange(AssetDatabase.FindAssets($"t:{t}", new[]{currDir}));	
 				
-		foreach ( var assetGuid in assetGuids )
+		foreach (var assetGuid in assetGuids)
 		{
-			var path	= AssetDatabase.GUIDToAssetPath( assetGuid );
+			var path	= AssetDatabase.GUIDToAssetPath(assetGuid);
 				
-			if( !GoToSubdirectories )
-				if( Path.GetDirectoryName( path ) != currDir )
+			if (!GoToSubdirectories)
+				if (Path.GetDirectoryName(path) != currDir)
 					continue;
 				
 			if (noFilter || path.EndsWith(".unity") || path.EndsWith(".prefab"))
 			{
-				var asset  = AssetDatabase.LoadMainAssetAtPath( path );
-				refs.Add( asset );
+				refs.Add(new(AssetDatabase.GUIDFromAssetPath(path).ToHash(), 0));
 			}
 			else
 			{
-				var assets  = AssetDatabase.LoadAllAssetsAtPath( path );
+				var assets  = AssetDatabase.LoadAllAssetsAtPath(path);
 						
-				foreach ( var asset in assets )
+				foreach (var asset in assets)
 				{
-					var typeName = asset.GetType( ).Name; 
-					if( types.Any( t => typeName.Contains( t ) ) )
-					{
-						refs.Add( asset );
-					}
+					var typeName = asset.GetType().Name;
+					if (types.Any(t => typeName.Contains(t)))
+						refs.Add( AssetLoader.EditorGetAssetAddress(asset) );
+						
+					if (asset is not GameObject) // Resources.UnloadAsset dont like GameObjects
+						Resources.UnloadAsset(asset);
 				}
 			}
 		}

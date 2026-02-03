@@ -2,35 +2,35 @@ using System.Collections;
 
 namespace Flexy.AssetRefs.Editor;
 
-public class RefsList: IEnumerable<Object>, ITasksTabView
+public class RefsList: IEnumerable<AssetRef>, ITasksTabView
 {
-	private	List<Object> 		_refs		= new( 32 );
-	private	HashSet<Object>?	_refsSet	= default;
+	private	List<AssetRef> 		_refs		= new(32);
+	private	HashSet<AssetRef>?	_refsSet	= default;
 		
-	public	void	Add			( Object? @ref )				
+	public	void	Add			( AssetRef @ref )				
 	{
-		if( @ref == null )
+		if (@ref.IsNone)
 			return;
 			
-		if ( @ref is IAssetRefsSource rs )
-			foreach ( var r in rs.CollectAssets() )
-				_refs.Add( r );
+		if (typeof(IAssetRefsSource).IsAssignableFrom(AssetLoader.EditorGetAssetType(@ref)))
+			foreach (var r in ((IAssetRefsSource)AssetLoader.EditorLoadAssetRaw(@ref)!).CollectAssets())
+				_refs.Add(r);
 		else
-			_refs.Add( @ref );
+			_refs.Add(@ref);
 	}
-	public	void	AddRange	( IEnumerable<Object?> list )	
+	public	void	AddRange	( IEnumerable<AssetRef> list )	
 	{
-		foreach (var o in list)
-			Add( o );
+		foreach (var @ref in list)
+			Add(@ref);
 	}
-	public	Boolean	Exists		( Object @ref )					
+	public	Boolean	Exists		( AssetRef @ref )				
 	{
 		if( _refsSet == null )
 			_refsSet = new( _refs );
 			
 		return _refsSet.Contains( @ref );
 	}
-	public	void	Remove		( Object @ref )					
+	public	void	Remove		( AssetRef @ref )				
 	{
 		_refs.Remove( @ref );
 	}
@@ -39,20 +39,20 @@ public class RefsList: IEnumerable<Object>, ITasksTabView
 		_refs.RemoveAt( index );
 	}
 	
-	public IEnumerator<Object>	GetEnumerator	( )	=> _refs.GetEnumerator( );
-	IEnumerator IEnumerable		.GetEnumerator	( )	=> GetEnumerator( );
+	public IEnumerator<AssetRef>GetEnumerator	( )	=> _refs.GetEnumerator();
+	IEnumerator IEnumerable		.GetEnumerator	( )	=> GetEnumerator();
 
 	public VisualElement		CreateTabGui	( )	
 	{
-		var collectedRefs		= this.Where( a => a ).Select( a => ( AssetDatabase.GetAssetPath( a ), a ) ).OrderBy( i => i.Item1 ).ToList( );
+		var collectedRefs		= this.Where( r => !r.IsNone ).Select( r => ( AssetDatabase.GUIDToAssetPath(r.Uid.ToGUID()), r ) ).OrderBy( i => i.Item1 ).ToList();
 		var collectedRefsGui	= new VisualElement { name = "Refs List" };
 		
 		const int itemHeight = 16;
 		Func<VisualElement> makeItem			= ()		=>  
 		{
 			var row = new VisualElement{ style = { flexDirection = FlexDirection.Row }};
-			row.Add( new Label {style = { width = 300 } } );
-			row.Add( new Label( ) );
+			row.Add( new Label{style = { width = 300 } } );
+			row.Add( new Label() );
 			return row;
 		};
 		Action<VisualElement, Int32> bindItem	= (e, i)	=>
@@ -61,10 +61,10 @@ public class RefsList: IEnumerable<Object>, ITasksTabView
 			(e.hierarchy[1] as Label)!.text		= Path.GetDirectoryName( collectedRefs[i].Item1 );
 		};
 		
-		Label			collectedCount	= new( ){ text = $"Count: {collectedRefs.Count}" };
-		ListView		previewList		= new( collectedRefs, itemHeight, makeItem, bindItem ) { selectionType = SelectionType.Single };
+		Label		collectedCount	= new(){ text = $"Count: {collectedRefs.Count}" };
+		ListView	previewList		= new( collectedRefs, itemHeight, makeItem, bindItem ) { selectionType = SelectionType.Single };
 
-		previewList.selectionChanged	+= objects => EditorGUIUtility.PingObject( (objects.First( ) as (String, Object)?)?.Item2  );
+		previewList.selectionChanged	+= objects => EditorGUIUtility.PingObject( (objects.First() as (String, Object)?)?.Item2  );
 
 		// _previewList.style.flexGrow = 1.0f;
 		previewList.style.maxHeight = 800;
@@ -77,10 +77,10 @@ public class RefsList: IEnumerable<Object>, ITasksTabView
 
 	public static class Internal
 	{
-		public static void ReplaceRefs	( RefsList refs, List<Object> list )
+		public static void ReplaceRefs	( RefsList refs, List<AssetRef> list )
 		{
-			refs._refs.Clear( );
-			refs._refs.AddRange( list );
+			refs._refs.Clear();
+			refs._refs.AddRange(list);
 		}
 	}
 }

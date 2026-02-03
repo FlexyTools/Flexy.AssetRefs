@@ -6,9 +6,9 @@ public class ExtractSceneListFromRefsList : IPipelineTask
 	{
 		var refs		= ctx.Get<RefsList>();
 		var scenes		= ctx.Get<SceneList>();
-		var sceneList	= refs.Where(r => r is SceneAsset).Distinct().Cast<SceneAsset>();
+		var sceneList	= refs.Where(r => AssetDatabase.GetMainAssetTypeFromGUID(r.Uid.ToGUID()) == typeof(SceneAsset)).Distinct();
 
 		foreach (var o in sceneList)
-			scenes.Add(o);
+			scenes.Add(new SceneRef(o.Uid));
 	}
 }
