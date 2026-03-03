@@ -42,6 +42,8 @@ public struct AssetRef : IRefLike, IEquatable<AssetRef>
 	public			Boolean		IsNone		=> _uid == default;
 	public static	AssetRef	None		=> default;
 
+	public	static	AssetLoader	AssetLoader	= new AssetLoaderResources();
+
 	public override	Int32		GetHashCode		( )									=> _uid.GetHashCode() ^ _subId.GetHashCode( );
 	public override	Boolean		Equals			( System.Object obj )				=> obj is AssetRef ar && this == ar;
 	public			Boolean		Equals			( AssetRef other )					=> _uid == other._uid & _subId == other._subId;
@@ -51,7 +53,7 @@ public struct AssetRef : IRefLike, IEquatable<AssetRef>
 	public override	String		ToString		( )									=> _uid == default ? String.Empty : _subId == 0 ? $"{_uid}" : $"{_uid}[{_subId}]";
 	public 			void		FromString		( String address )					=> this = Parse<Object>( address ).Raw;
 
-	public static	AssetRef<T>		Parse<T>( String address ) where T: Object		
+	public static	AssetRef<T>	Parse<T>		( String address ) where T: Object	
 	{
 		if (String.IsNullOrWhiteSpace( address ))
 			return default;
@@ -61,7 +63,6 @@ public struct AssetRef : IRefLike, IEquatable<AssetRef>
 		
 		return new(uid, subId);
 	}
-	public	static	AssetLoader		AssetLoader	= new AssetLoaderResources();
 }
 	
 public interface IRefLike

@@ -27,7 +27,7 @@ public class SceneLoader_Resources : SceneLoader
 		#endif
 		
 		var sceneTask		= new LoadSceneTask(context, p, SceneManager.GetSceneAt(SceneManager.sceneCount - 1));
-
+		sceneTask.Scene.SetGuid(@ref.Uid.ToString());
 		return sceneTask.Run( SceneLoadWaitImpl(sceneLoadOp, sceneTask) );
 	}
 }
