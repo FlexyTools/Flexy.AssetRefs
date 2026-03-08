@@ -4,7 +4,14 @@ All notable changes to this package will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
-## [6.0.0]
+## [6.1.0] - 2026-03-08
+
+### Added
+
+- Added working Scene.guid. Get SceneRef from Scene and compare Scene to SceneRef
+
+
+## [6.0.0] - 2026-01-02
 
 ### Added
 
@@ -34,6 +41,7 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Fixed loading incorrect asset in editor and inspector
 - Fixed AddRefsFromDirectory now correctly adds scenes when filtered
 - Fixed scene loading in editor when simulate runtime behaviour and scene is not in build settings
+
 
 ## [5.1.0] - 2026-01-01
 
@@ -67,6 +75,7 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Fixed unconsistent AssetRef loading in editor vs build. Editor was capable for load any asset on path while build can only load exact asset on address
 - Fixed loading incorrect asset in editor and inspector
 
+
 ## [5.0.3] - 2025-03-30
 
 ### Fixed
@@ -77,6 +86,7 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 
 - Added log error with asset ref on fail to load with AssetLoader_Resources
+
 
 ## [5.0.2] - 2025-03-07
 
@@ -90,6 +100,7 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Added documentation Third party notices section
 - Added documentation FAQ section
 
+
 ## [5.0.1] - 2025-02-25
 
 ### Fixed
@@ -100,6 +111,7 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 - Changed AsmDef names to pass asset store validation
+
 
 ## [5.0.0] - 2025-02-24
 
@@ -112,6 +124,7 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 
 - Documentation
+
 
 ## [5.0.0-pre.1] - 2025-02-23
 
@@ -142,6 +155,7 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   - Task RunOnBuildPreprocess - Autorun pipeline when you press build
 - Added RefsCollector - Utility to collect refs from object fields
 - Added AssetLoader_Resources - Default AssetLoader backend
+
 
 ## [ . . . ]
 
