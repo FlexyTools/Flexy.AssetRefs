@@ -224,6 +224,7 @@ public class LoadSceneTask : IProgress<Single>
 	}
 	private async	UniTask<Scene>	LoadSceneStepsAsync		( )	
 	{
+		await UniTask.NextFrame();
 		await WaitForSceneLoadStart();
 		
 		try						{ NewLoadSceneTaskStarted?.Invoke( this );	}			
