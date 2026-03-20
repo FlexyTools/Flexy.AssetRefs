@@ -1,5 +1,9 @@
 using Flexy.AssetRefs.Extra;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Flexy.AssetRefs;
 
 public abstract class AssetLoader
@@ -12,7 +16,7 @@ public abstract class AssetLoader
 		try
 		{
 #if UNITY_EDITOR
-			if (!EditorBehaviourAndMenu.RuntimeBehaviorEnabled || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+			if (!EditorBehaviourAndMenu.RuntimeBehaviorEnabled || !EditorApplication.isPlayingOrWillChangePlaymode)
 			{
 				return EditorLoadAsync(@ref);
 				
@@ -27,7 +31,7 @@ public abstract class AssetLoader
 			
 			return LoadAssetAsync_Impl<T>(@ref);
 		}
-		catch( Exception ex )
+		catch (Exception ex)
 		{
 			Debug.LogException(ex);
 			return UniTask.FromResult<T?>(null);
@@ -41,13 +45,13 @@ public abstract class AssetLoader
 		try
 		{
 #if UNITY_EDITOR
-			if (!EditorBehaviourAndMenu.RuntimeBehaviorEnabled || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+			if (!EditorBehaviourAndMenu.RuntimeBehaviorEnabled || !EditorApplication.isPlayingOrWillChangePlaymode)
 				return EditorLoadAsset(new AssetRef<T>(@ref.Uid, @ref.SubId));
 #endif
 			
 			return LoadAssetSync_Impl<T>(@ref);
 		}
-		catch( Exception ex )
+		catch (Exception ex)
 		{
 			Debug.LogException(ex);
 			return null;
@@ -72,17 +76,17 @@ public abstract class AssetLoader
 
 		if (address.SubId == 0) //pure guid
 		{
-			var path = UnityEditor.AssetDatabase.GUIDToAssetPath( address.Uid.ToGUID() );
+			var path = AssetDatabase.GUIDToAssetPath( address.Uid.ToGUID() );
 		
-			return UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
+			return AssetDatabase.LoadMainAssetAtPath(path);
 		}
 		else
 		{
-			var path		= UnityEditor.AssetDatabase.GUIDToAssetPath( address.Uid.ToGUID() );
+			var path		= AssetDatabase.GUIDToAssetPath( address.Uid.ToGUID() );
 			
-			foreach ( var asset in UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path) )
+			foreach ( var asset in AssetDatabase.LoadAllAssetsAtPath(path) )
 			{
-				if (!asset || !UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out Int64 instanceId )) 
+				if (!asset || !AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out Int64 instanceId )) 
 					continue;
 				
 				if (address.SubId == instanceId)
@@ -100,11 +104,11 @@ public abstract class AssetLoader
 		
 #if UNITY_EDITOR
 		
-		if ((asset is Component or GameObject or ScriptableObject || UnityEditor.AssetDatabase.IsMainAsset(asset)) && UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out Int64 _ ))
-			return new( new UnityEditor.GUID(guid).ToHash(), 0 );	
+		if ((asset is Component or GameObject or ScriptableObject || AssetDatabase.IsMainAsset(asset)) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out Int64 _ ))
+			return new( new GUID(guid).ToHash(), 0 );	
 		
-		if (UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId ))
-			return new( new UnityEditor.GUID(guid2).ToHash(), instanceId );
+		if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId ))
+			return new( new GUID(guid2).ToHash(), instanceId );
 		
 #endif
 		
@@ -117,10 +121,10 @@ public abstract class AssetLoader
 			return null;
 
 		if (@ref.SubId == 0)
-			return UnityEditor.AssetDatabase.GetMainAssetTypeFromGUID(@ref.Uid.ToGUID());
+			return AssetDatabase.GetMainAssetTypeFromGUID(@ref.Uid.ToGUID());
 
-		var path = UnityEditor.AssetDatabase.GUIDToAssetPath(@ref.Uid.ToGUID());
-		var type = UnityEditor.AssetDatabase.GetTypeFromPathAndFileID(path, @ref.SubId);
+		var path = AssetDatabase.GUIDToAssetPath(@ref.Uid.ToGUID());
+		var type = AssetDatabase.GetTypeFromPathAndFileID(path, @ref.SubId);
 		
 		return type;
 #endif

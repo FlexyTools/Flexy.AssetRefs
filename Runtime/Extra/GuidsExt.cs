@@ -1,9 +1,12 @@
 ﻿namespace Flexy.AssetRefs.Extra;
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_6000_4_OR_NEWER
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 public static class GuidsExt
 {
