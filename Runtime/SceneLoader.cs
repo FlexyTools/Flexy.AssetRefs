@@ -232,10 +232,16 @@ public class LoadSceneTask : IProgress<Single>
 
 		while (CurrentStep.Status == UniTaskStatus.Pending)
 			await UniTask.NextFrame();
-	
-		if (Params.SetActive)
-			SceneManager.SetActiveScene(Scene);
-	
+
+		if (Params.SetActive && Scene.IsValid())
+		{
+			for (var i = 0; i < 3 && !Scene.isLoaded; i++)
+				await UniTask.NextFrame();
+			
+			if (Scene.isLoaded)
+				SceneManager.SetActiveScene(Scene);
+		}
+		
 		while (LoadSteps != null && LoadSteps.Count > 0)
 		{
 			var step		= LoadSteps[0];
