@@ -217,13 +217,16 @@ public class LoadSceneTask : IProgress<Single>
 	}
 	public async	UniTask<Scene>	WaitForSceneLoadStart	( )	
 	{
-		while (Scene == default && (ChainTask.Equals(default(UniTask)) || !IsDone))
+		while (Scene == default && !IsDone)
 			await UniTask.Yield( PlayerLoopTiming.LastPostLateUpdate );
 		
 		return Scene;
 	}
 	private async	UniTask<Scene>	LoadSceneStepsAsync		( )	
 	{
+		if (Scene == default)
+			await UniTask.Yield( PlayerLoopTiming.LastPostLateUpdate );
+			
 		await WaitForSceneLoadStart();
 		
 		try						{ NewLoadSceneTaskStarted?.Invoke( this );	}			
