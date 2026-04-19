@@ -53,6 +53,11 @@ public class BuildPlayer : IPipelineTask
 		if (!Directory.Exists(outputDirectory))
 			Directory.CreateDirectory(outputDirectory);
         
+        #if UNITY_STANDALONE || UNITY_WEBGL
+		Directory.Delete(outputDirectory, true);
+		Directory.CreateDirectory(outputDirectory);
+        #endif
+        
 		var scenes = ctx.Get<SceneList>().GetBuildScenes();
         
 		var buildPlayerOptions = new BuildPlayerOptions

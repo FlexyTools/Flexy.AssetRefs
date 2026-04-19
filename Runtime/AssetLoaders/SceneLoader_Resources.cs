@@ -26,8 +26,9 @@ public class SceneLoader_Resources : SceneLoader
 		var sceneLoadOp		= SceneManager.LoadSceneAsync( asset.Name, new LoadSceneParameters( p.LoadMode, p.PhysicsMode ) );
 		#endif
 		
-		var sceneTask		= new LoadSceneTask(context, p, SceneManager.GetSceneAt(SceneManager.sceneCount - 1));
-		sceneTask.Scene.SetGuid(@ref.Uid.ToString());
+		var scene		= SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
+		var sceneTask	= new LoadSceneTask(context, @ref, p, scene);
+		
 		return sceneTask.Run( SceneLoadWaitImpl(sceneLoadOp, sceneTask) );
 	}
 }

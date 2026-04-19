@@ -25,7 +25,8 @@ public abstract class SceneLoader
 			var path			= UnityEditor.AssetDatabase.GUIDToAssetPath( @ref.Uid.ToGUID() );
 			var sceneLoadOp		= UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode( path, new(p.LoadMode, p.PhysicsMode) );
 			
-			var sceneTask = new LoadSceneTask(context, p, SceneManager.GetSceneAt( SceneManager.sceneCount - 1 ));
+			var scene		= SceneManager.GetSceneAt( SceneManager.sceneCount - 1 );
+			var sceneTask	= new LoadSceneTask(context, @ref, p, scene);
 
 			return sceneTask.Run( SceneLoadWaitImpl(sceneLoadOp, sceneTask) );
 		}
@@ -46,12 +47,12 @@ public abstract class SceneLoader
 		return LoadDummyScene_Impl( ctx, mode, unloadOptions, createSceneObjects, components );
 	}
 	
-	// Virtual interface for loding customisation
+	// Virtual interface for loading customisation
 	protected abstract		String?					GetSceneName_Impl			( SceneRef @ref );
 	protected abstract 		LoadSceneTask			LoadSceneAsync_Impl			( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context );
 	protected virtual		LoadSceneTask			LoadDummyScene_Impl			( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components )
 	{
-		var sceneTask			= new LoadSceneTask(ctx, new LoadSceneTask.Parameters(mode));
+		var sceneTask			= new LoadSceneTask(ctx, default, new LoadSceneTask.Parameters(mode));
 
 		return sceneTask.Run( LoadDummyScene_Internal( sceneTask, mode, unloadOptions, createSceneObjects, components ) );
 		
@@ -156,9 +157,12 @@ public class LoadSceneTask : IProgress<Single>
 	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 	private static void StaticClear( ) => NewLoadSceneTaskStarted				= null;
 
-	public LoadSceneTask( GameObject context, Parameters p, Scene scene = default, Single rangeMin = 0, Single rangeMax = 1, String? description = "Loading..." )
+	[Obsolete( "Use overload with SceneRef instead", false )]
+	public LoadSceneTask( GameObject context, Parameters p, Scene scene = default, Single rangeMin = 0, Single rangeMax = 1, String? description = "Loading..." ): this(context, default, p, scene, rangeMin, rangeMax, description) { }
+	public LoadSceneTask( GameObject context, SceneRef sref, Parameters p, Scene scene = default, Single rangeMin = 0, Single rangeMax = 1, String? description = "Loading..." )
 	{
 		Context			= context;
+		SceneRef		= sref;
 		_params			= p;
 		Scene			= scene;
 		
@@ -167,14 +171,30 @@ public class LoadSceneTask : IProgress<Single>
 		StepDescription	= description;
 	}
 
-	private UniTask<Scene>	ChainTask;
+	private UniTask<Scene>	_allSteps;
 	private	Parameters		_params;
+	private Scene			_scene;
 	
-	public	GameObject		Context {get;}
+	public	GameObject		Context		{get;}
+	public	SceneRef		SceneRef	{get;}
 	
-	public	Scene			Scene;
+	public	Scene			Scene		
+	{
+		get => _scene;
+		set 
+		{
+			if (_scene != default || value == default)
+				return;
+				
+			_scene = value;
+			_scene.SetGuid(SceneRef.Uid.ToString());
+			
+			try						{ NewLoadSceneTaskStarted?.Invoke( this ); }			
+			catch( Exception ex )	{ Debug.LogException( ex ); }			
+		}
+	}
+
 	public	Single			StepProgress;
-	
 	public	Single			RangeMin;
 	public	Single			RangeMax;
 	public	String?			StepDescription;
@@ -182,19 +202,19 @@ public class LoadSceneTask : IProgress<Single>
 	public	UniTask			CurrentStep {get; private set;}
 
 	private List<Func<LoadSceneTask, UniTask>>?	LoadSteps;
-	
+
 	public	Single			Progress				=> IsDone ? 1 : (StepProgress - RangeMin) / (RangeMax - RangeMin);
-	public	UniTaskStatus	Status					=> ChainTask.Status;
+	public	UniTaskStatus	Status					=> _allSteps.Status;
 	public	Parameters		Params					=> _params;
 	public	Boolean			DelaySceneActivation	=> !Params.AllowActivation;
-	public	Boolean			IsDone					=> ChainTask.Status != UniTaskStatus.Pending;
+	public	Boolean			IsDone					=> _allSteps.Status != UniTaskStatus.Pending;
 
 	public static event		Action<LoadSceneTask>?	NewLoadSceneTaskStarted;
 	
-	public LoadSceneTask	Run						( UniTask<Scene> firstSceneTask )			
+	public	LoadSceneTask	Run						( UniTask<Scene> firstSceneTask )			
 	{
 		CurrentStep		= firstSceneTask;
-		ChainTask		= LoadSceneStepsAsync();
+		_allSteps		= AllLoadSceneStepsAsync();
 		
 		return this;
 	}
@@ -204,16 +224,16 @@ public class LoadSceneTask : IProgress<Single>
 		LoadSteps.Add( loadStep );
 	}
 	
-	public	UniTask			ContinueWith			( Action<Scene> action )=> ChainTask.ContinueWith(action);
+	public	UniTask			ContinueWith			( Action<Scene> action )=> _allSteps.ContinueWith(action);
 	public	void			AllowSceneActivation	( )						=> _params.AllowActivation = true;
 	
-	public void						Report			( Single value )		=> StepProgress = value;
-	public UniTask<Scene>.Awaiter	GetAwaiter		( ) => ChainTask.GetAwaiter();
-	public void						Forget			( )	=> ChainTask.Forget();
+	public	void					Report			( Single value )		=> StepProgress = value;
+	public	UniTask<Scene>.Awaiter	GetAwaiter		( ) => _allSteps.GetAwaiter();
+	public	void					Forget			( )	=> _allSteps.Forget();
 
 	public			UniTask<Scene>	AsUniTask				( )	
 	{
-		return ChainTask;
+		return _allSteps;
 	}
 	public async	UniTask<Scene>	WaitForSceneLoadStart	( )	
 	{
@@ -222,16 +242,8 @@ public class LoadSceneTask : IProgress<Single>
 		
 		return Scene;
 	}
-	private async	UniTask<Scene>	LoadSceneStepsAsync		( )	
+	private async	UniTask<Scene>	AllLoadSceneStepsAsync	( )	
 	{
-		if (Scene == default)
-			await UniTask.Yield( PlayerLoopTiming.LastPostLateUpdate );
-			
-		await WaitForSceneLoadStart();
-		
-		try						{ NewLoadSceneTaskStarted?.Invoke( this );	}			
-		catch( Exception ex )	{ Debug.LogException( ex );					}
-
 		while (CurrentStep.Status == UniTaskStatus.Pending)
 			await UniTask.NextFrame();
 
