@@ -1,7 +1,7 @@
 {
   "name": "fun.flexy.assetrefs",
   "displayName": "Flexy AssetRefs",
-  "version": "6.1.2",
+  "version": "6.1.3",
   "unity": "2022.3",
   "description": "Flexy.AssetRefs provides an efficient way to indirectly reference assets and scenes, offering cleaner alternative to Unity Addressables. Designed for flexibility, Flexy.AssetRefs is easy to use from the prototyping stage. It is well-suited for small projects where Addressables can create more issues than they solve and easily expand to more complex systems later.",
   "changelog": "https://github.com/FlexyTools/Flexy.AssetRefs/releases",

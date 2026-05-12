@@ -35,20 +35,23 @@ public class SceneList: IEnumerable<SceneRef>, ITasksTabView
 		_refs.RemoveAt(index);
 	}
 
-	public		String[]	GetBuildScenes		( )							
+	public		String[]	GetBuildScenes		( Boolean addUnitySceneListScenes )	
 	{
-		var buildScenes	= EditorBuildSettings.scenes;
 		var scenes		= new List<String>();
-        
-		foreach (var scene in buildScenes)
-			if (scene.enabled)
-				scenes.Add(scene.path);
+
+		if (addUnitySceneListScenes)
+		{
+			var buildScenes	= EditorBuildSettings.scenes;
+			foreach (var scene in buildScenes)
+				if (scene.enabled)
+					scenes.Add(scene.path);
+		}
         
 		AddScenesToList(scenes);
         
 		return scenes.Distinct().ToArray();
 	}
-	public		void		AddScenesToList		( List<String> scenes )		
+	public		void		AddScenesToList		( List<String> scenes )				
 	{
 		foreach (var scn in _refs)
 			scenes.Add( AssetDatabase.GUIDToAssetPath(scn.Uid.ToGUID()) );

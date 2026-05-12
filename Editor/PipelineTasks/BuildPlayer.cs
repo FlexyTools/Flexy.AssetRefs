@@ -11,7 +11,8 @@ public class BuildPlayer : IPipelineTask
 	[SerializeField] private Boolean 	_developmentBuild;
 	[Header("Additions")]
 	[SerializeField] private Boolean 	_nameAddTime;
-	[SerializeField] private Boolean 	_nameAddHash; 
+	[SerializeField] private Boolean 	_nameAddHash;
+	[SerializeField] private Boolean 	_addUnitySceneListScenes;
 
 	public void Run( Pipeline ppln, Context ctx )
 	{
@@ -58,7 +59,7 @@ public class BuildPlayer : IPipelineTask
 		Directory.CreateDirectory(outputDirectory);
         #endif
         
-		var scenes = ctx.Get<SceneList>().GetBuildScenes();
+		var scenes = ctx.Get<SceneList>().GetBuildScenes(_addUnitySceneListScenes);
         
 		var buildPlayerOptions = new BuildPlayerOptions
 		{
