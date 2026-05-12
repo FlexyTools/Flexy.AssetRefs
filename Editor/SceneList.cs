@@ -35,7 +35,7 @@ public class SceneList: IEnumerable<SceneRef>, ITasksTabView
 		_refs.RemoveAt(index);
 	}
 
-	public		String[]	GetBuildScenes		( Boolean addUnitySceneListScenes )	
+	public		String[]	GetBuildScenes		( Boolean addUnitySceneListScenes = false )	
 	{
 		var scenes		= new List<String>();
 
