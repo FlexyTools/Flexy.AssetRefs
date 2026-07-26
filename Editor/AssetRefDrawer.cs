@@ -3,6 +3,7 @@ using Flexy.Utils.Editor;
 
 namespace Flexy.AssetRefs.Editor
 {
+	[CustomPropertyDrawer(typeof(AssetRef))]
 	[CustomPropertyDrawer(typeof(AssetRef<>))]
 	public class AssetRefDrawer : PropertyDrawer
 	{
@@ -53,7 +54,7 @@ namespace Flexy.AssetRefs.Editor
 			
 			var isChanged = EditorGUI.EndChangeCheck();
 			
-			if (newobj is SceneAsset)
+			if (newobj is SceneAsset && GetAssetRefFieldType(fieldInfo) != typeof(AssetRef))
 			{
 				Debug.LogError		( $"[AssetRefDrawer] - OnGUI: Asset type (Scene) not able for AssetRef, use SceneRef" );
 				uidProp.hash128Value = default;
@@ -136,13 +137,22 @@ namespace Flexy.AssetRefs.Editor
         }
 		protected static	Type	GetRefType			( FieldInfo fieldInfo )												
 		{
+			var type = GetAssetRefFieldType(fieldInfo);
+			
+			if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(AssetRef<>))
+				return type.GetGenericArguments()[0];
+			
+			return typeof(Object);
+		}
+		private static Type GetAssetRefFieldType( FieldInfo fieldInfo )
+		{
 			var type = fieldInfo.FieldType;
 			
-			if			(type.IsArray)																type = fieldInfo.FieldType.GetElementType()!;
-			else if		(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))	type = fieldInfo.FieldType.GetGenericArguments()[0];
+			if (type.IsArray)
+				return type.GetElementType()!;
 			
-			if (type.IsGenericType)	type = type.GetGenericArguments()[0];
-			else					type = typeof(Object);
+			if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+				return type.GetGenericArguments()[0];
 			
 			return type;
 		}

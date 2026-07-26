@@ -14,7 +14,7 @@ public class RefsList: IEnumerable<AssetRef>, ITasksTabView
 			
 		if (typeof(IAssetRefsSource).IsAssignableFrom(AssetLoader.EditorGetAssetType(@ref)))
 			foreach (var r in ((IAssetRefsSource)AssetLoader.EditorLoadAssetRaw(@ref)!).CollectAssets())
-				_refs.Add(r);
+				Add(r);
 		else
 			_refs.Add(@ref);
 	}
