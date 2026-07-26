@@ -6,6 +6,10 @@ namespace Flexy.AssetRefs.Pipelines
 		public Boolean			DisablePipeline;
         public EnabledTask[]	EnabledTasks	= {};
 
+#if UNITY_EDITOR
+		[NonSerialized] public Context? EditorLastRunContext;
+#endif
+
 		public			void			RunTasks	( )					
 		{
 			if ( DisablePipeline || EnabledTasks.Length <= 0 )
