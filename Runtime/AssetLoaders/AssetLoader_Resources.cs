@@ -25,7 +25,7 @@ public class AssetLoaderResources : AssetLoader
 	}
 	protected override		T?				LoadAssetSync_Impl<T>		( AssetRef @ref )	where T : class		
 	{		
-		var resourceRef	= Resources.Load<ResourceRef>( $"Fun.Flexy/AssetRefs/{@ref}" );
+		var resourceRef		= Resources.Load<ResourceRef>( $"Fun.Flexy/AssetRefs/{@ref}" );
 
 		if (!resourceRef)
 			resourceRef		= Resources.Load<ResourceRef>( $"Fun.Flexy/AssetRefs/{@ref.Uid.ToString()}" );
