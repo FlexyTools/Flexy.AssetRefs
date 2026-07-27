@@ -6,17 +6,22 @@ namespace Flexy.AssetRefs.Pipelines;
 
 public interface IAssetRefsSource	
 {
-	public List<AssetRef> CollectAssets( ); 
+	public	List<AssetRef>	CollectAssets( ); 
 }
 
 public static class		RefsCollector		 
 {
-	public static	List<Object>	CollectRefsDeep	( System.Object obj, params String[]? ignoreFields )			
+	public static	List<Object>	CollectObjectsDeep	( System.Object obj, params String[]? ignoreFields )	
 	{
-		var result	= new List<Object>( );
-		var type	= obj.GetType(  );
+		var refs = CollectRefsDeep(obj, ignoreFields);
+		return refs.Select(AssetLoader.EditorLoadAssetRaw).Where(o => o != null).ToList()!;
+	}
+	public static	List<AssetRef>	CollectRefsDeep		( System.Object obj, params String[]? ignoreFields )	
+	{
+		var result	= new List<AssetRef>();
+		var type	= obj.GetType();
 			
-		var fields	= new List<FieldInfo>( );
+		var fields	= new List<FieldInfo>();
 
 		do
 		{
@@ -46,9 +51,8 @@ public static class		RefsCollector
 				
 			if (fieldObj is IRefLike r1)
 			{
-				var asset = AssetLoader.EditorLoadAssetRaw( new( r1.Uid, r1.SubId ) );
-				if( asset != null )
-					result.Add( asset );
+				var asset = new AssetRef( r1.Uid, r1.SubId );
+				result.Add( asset );
 			}
 			else if (fieldObj is IEnumerable enumerable)
 			{
@@ -61,9 +65,8 @@ public static class		RefsCollector
 						
 					if (e is IRefLike r2)
 					{
-						var asset = AssetLoader.EditorLoadAssetRaw( new( r2.Uid, r2.SubId ) );
-						if( asset != null )
-							result.Add( asset );
+						var asset = new AssetRef( r2.Uid, r2.SubId );
+						result.Add( asset );
 					}
 					else
 					{

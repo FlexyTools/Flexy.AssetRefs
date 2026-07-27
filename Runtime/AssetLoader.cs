@@ -106,9 +106,20 @@ public abstract class AssetLoader
 		
 		if ((asset is Component or GameObject or ScriptableObject || AssetDatabase.IsMainAsset(asset)) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid, out Int64 _ ))
 			return new( new GUID(guid).ToHash(), 0 );	
-		
+
 		if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier( asset, out var guid2, out long instanceId ))
 			return new( new GUID(guid2).ToHash(), instanceId );
+		
+		// Future full asset ref version to be closer to Unity 6.6 Loaders
+		//	
+		// if (asset is Component c)
+		// 	asset = c.gameObject; 
+		//
+		// if (asset is SceneAsset)
+		// 	return new(AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetOrScenePath(asset)).ToHash(), 0);	
+		//
+		// if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out var guid, out long instanceId))
+		// 	return new(new GUID(guid).ToHash(), instanceId);
 		
 #endif
 		
@@ -120,13 +131,15 @@ public abstract class AssetLoader
 		if (@ref.IsNone)
 			return null;
 
-		if (@ref.SubId == 0)
-			return AssetDatabase.GetMainAssetTypeFromGUID(@ref.Uid.ToGUID());
+		var type = AssetDatabase.GetMainAssetTypeFromGUID(@ref.Uid.ToGUID());
+
+		if (type == typeof(SceneAsset) || typeof(ScriptableObject).IsAssignableFrom(type) || @ref.SubId == 0)
+			return type;
 
 		var path = AssetDatabase.GUIDToAssetPath(@ref.Uid.ToGUID());
-		var type = AssetDatabase.GetTypeFromPathAndFileID(path, @ref.SubId);
+		type = AssetDatabase.GetTypeFromPathAndFileID(path, @ref.SubId);
 		
-		return type;
+		return type; 
 #endif
 		
 		return null;

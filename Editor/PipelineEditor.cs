@@ -35,24 +35,21 @@ namespace Flexy.AssetRefs.Editor
 			_tabControl.Add( _tabs );
 			_tabControl.Add( _tabsContent );
 			root.Add( _tabControl );
+			
+			if (((Pipeline)target).EditorLastRunContext != null)
+				RebuildTabs(((Pipeline)target).EditorLastRunContext!);
 		
 			return root;
 
 			void RunTasks( )
 			{
-				var ctx = GenericPool<Context>.Get( );
+				var pipeline = (Pipeline)target;
+				var ctx = new Context();
 				ctx.Clear( );
+				pipeline.EditorLastRunContext = ctx;
 				
-				try
-				{
-					((Pipeline)target).RunTasks( ctx ); 
-					
-					RebuildTabs( ctx );
-				}
-				finally
-				{
-					GenericPool<Context>.Release( ctx );
-				}
+				pipeline.RunTasks( ctx ); 
+				RebuildTabs( ctx );
 			}
 		
 			void RebuildTabs( Context ctx )
