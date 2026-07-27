@@ -43,6 +43,6 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: baae8b63a58847bab5374411a1a23654, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Flexy.AssetRefs::Flexy.AssetRefs.Content_Service
+  m_EditorClassIdentifier: Flexy.AssetRefs::Flexy.AssetRefs.ContentService
   _pathType: 0
   _contentDirectoryPath: MainCD

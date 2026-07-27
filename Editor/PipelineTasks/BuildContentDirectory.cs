@@ -6,7 +6,7 @@ using BuildCompression = UnityEngine.BuildCompression;
 namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
 [Serializable]
-public class Build_ContentDirectory : IPipelineTask
+public class BuildContentDirectory : IPipelineTask
 {
 	[SerializeField] ContentService			ServicePrefab	= null!;
 	[SerializeField] String					OutputPath		= "Assets/StreamingAssets/MainCD";
