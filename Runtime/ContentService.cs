@@ -22,7 +22,8 @@ namespace Flexy.AssetRefs
 		private const	String	PrefabResourceDirectory		= "Assets/Resources/Fun.Flexy";
 		private const	String	PrefabResourceAssetPath		= PrefabResourceDirectory + "/ContentServiceRef.asset";
 
-		[SerializeField] String _contentDirectoryPath		= "Content";
+		[SerializeField] EPathType	_pathType				= EPathType.StreamingAssets;
+		[SerializeField] String		_contentDirectoryPath	= "MainCD";
 
 		private ContentDirectoryHandle		_contentDirectory;
 		private ContentDirectoryCatalog[]	_contentCatalogs = Array.Empty<ContentDirectoryCatalog>();
@@ -72,7 +73,14 @@ namespace Flexy.AssetRefs
 			if (String.IsNullOrWhiteSpace(_contentDirectoryPath))
 				throw new InvalidOperationException("Content directory path can not be empty.");
 
-			var contentDirectoryPath = Path.GetFullPath(_contentDirectoryPath);
+			var path = _pathType switch 
+			{
+				EPathType.StreamingAssets	=> Application.streamingAssetsPath + "/" + _contentDirectoryPath,
+				EPathType.Data				=> Application.persistentDataPath + "/" + _contentDirectoryPath,
+				_							=> _contentDirectoryPath,
+			};
+			
+			var contentDirectoryPath = Path.GetFullPath(path);
 			if (!Directory.Exists(contentDirectoryPath))
 				throw new DirectoryNotFoundException($"Content directory was not found at '{contentDirectoryPath}'.");
 
@@ -174,5 +182,12 @@ namespace Flexy.AssetRefs
 			UnityEditor.AssetDatabase.ImportAsset(PrefabResourceAssetPath, UnityEditor.ImportAssetOptions.ForceSynchronousImport);
 		}
 #endif
+
+		public enum EPathType: Byte
+		{
+			StreamingAssets,
+			Data,
+			Raw
+		}
 	}
 }

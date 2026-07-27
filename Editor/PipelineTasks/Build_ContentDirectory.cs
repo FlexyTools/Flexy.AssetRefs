@@ -9,10 +9,12 @@ namespace Flexy.AssetRefs.Editor.PipelineTasks;
 public class Build_ContentDirectory : IPipelineTask
 {
 	[SerializeField] ContentService			ServicePrefab	= null!;
-	[SerializeField] String					OutputPath		= "Content";
-	[SerializeField] String					BuildName		= "Content";
-	[SerializeField] CompressionType		Compression;
+	[SerializeField] String					OutputPath		= "Assets/StreamingAssets/MainCD";
+	[SerializeField] String					BuildName		= "GameContent";
+	[SerializeField] CompressionType		Compression		= default;
 	[SerializeField] BuildContentOptions	Options			= BuildContentOptions.FailBuildWhenErrorsLogged;
+	[SerializeField] Boolean				LeaveFirstSceneForBuildSettings = true;
+	[SerializeField] Boolean				CleanupContentCatalog			= true;
 
 	const String CatalogAssetPath		= "Assets/ContentCatalog.asset";
 
@@ -55,7 +57,15 @@ public class Build_ContentDirectory : IPipelineTask
 			assetLoadables	.Add(new Loadable<Object>(objectId));
 		}
 
-		foreach (var sceneRef in ctx.Get<SceneList>().Where(@ref => !@ref.IsNone).Distinct())
+		var sceneList = ctx.Get<SceneList>().Where(@ref => !@ref.IsNone).Distinct().ToList();
+
+		if (LeaveFirstSceneForBuildSettings)
+		{
+			SceneList.Internal.ReplaceRefs( ctx.Get<SceneList>(), new List<SceneRef>{sceneList[0]} );
+			sceneList.RemoveAt(0);
+		}
+
+		foreach (var sceneRef in sceneList)
 		{
 			var sceneAsset = AssetLoader.EditorLoadAssetRaw(sceneRef.Raw) as SceneAsset;
 			if (!sceneAsset)
@@ -102,13 +112,15 @@ public class Build_ContentDirectory : IPipelineTask
 			}
 		};
 
+		if (CleanupContentCatalog)
+			AssetDatabase.DeleteAsset(CatalogAssetPath);
+
 		var report = BuildPipeline.BuildContentDirectory(parameters);
 		if (report.summary.result != BuildResult.Succeeded)
 			throw new BuildFailedException($"Content directory build failed: {report.summary.result}.");
 
 		Debug.Log(
 			$"[ContentCatalogBuilder] Built content directory '{BuildName}' at '{Path.GetFullPath(OutputPath)}'. " +
-			$"Assets: {assetRefs.Count}, scenes: {sceneRefs.Count}, size: {report.summary.totalSize} bytes.",
-			catalog);
+			$"Assets: {assetRefs.Count}, scenes: {sceneRefs.Count}, size: {report.summary.totalSize} bytes.");
 	}
 }
