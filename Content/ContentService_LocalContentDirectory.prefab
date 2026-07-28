@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 517684189141507694}
   - component: {fileID: 4630428498873964118}
   m_Layer: 0
-  m_Name: ContentService
+  m_Name: ContentService_LocalContentDirectory
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -41,8 +41,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 5160596085914958152}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: baae8b63a58847bab5374411a1a23654, type: 3}
+  m_Script: {fileID: 11500000, guid: 0fd9a0c6422e41ee895ad6fed01200ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Flexy.AssetRefs::Flexy.AssetRefs.ContentService
+  m_EditorClassIdentifier: Flexy.AssetRefs::Flexy.AssetRefs.ContentService_LocalContentDirectory
   _pathType: 0
   _contentDirectoryPath: MainCD

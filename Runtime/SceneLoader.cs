@@ -1,11 +1,10 @@
-using System.Linq;
 using Flexy.AssetRefs.Extra;
 
 namespace Flexy.AssetRefs;
 
-public abstract class SceneLoader
+public class SceneLoader
 {
-	public					String?					GetSceneName				( SceneRef @ref )						
+	public		String?				GetSceneName			( SceneRef @ref )						
 	{
 #if UNITY_EDITOR			
 		if( !EditorBehaviourAndMenu.RuntimeBehaviorEnabled || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode )
@@ -17,7 +16,7 @@ public abstract class SceneLoader
 		
 		return GetSceneName_Impl( @ref );
 	}
-	public					LoadSceneTask			LoadSceneAsync				( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context )	
+	public		LoadSceneTask		LoadSceneAsync			( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context )	
 	{
 #if UNITY_EDITOR			
 		if (!EditorBehaviourAndMenu.RuntimeBehaviorEnabled || !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
@@ -33,7 +32,7 @@ public abstract class SceneLoader
 #endif
 		return	LoadSceneAsync_Impl( @ref, p, context );
 	}
-	public					LoadSceneTask			LoadDummySceneAsync			( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects, DummySceneFlags dummyFlags = DummySceneFlags.DummyCamera | DummySceneFlags.DummyListener, Action? createSceneObjects = null )
+	public		LoadSceneTask		LoadDummySceneAsync		( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects, DummySceneFlags dummyFlags = DummySceneFlags.DummyCamera | DummySceneFlags.DummyListener, Action? createSceneObjects = null )
 	{
 		var components = new List<Type>();
 
@@ -42,120 +41,24 @@ public abstract class SceneLoader
 	
 		return LoadDummyScene_Impl( ctx, mode, unloadOptions, createSceneObjects, components.ToArray() );
 	}
-	public					LoadSceneTask			LoadDummySceneAsync			( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects, Action? createSceneObjects = null, params Type[] components )
+	public		LoadSceneTask		LoadDummySceneAsync		( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions = UnloadSceneOptions.UnloadAllEmbeddedSceneObjects, Action? createSceneObjects = null, params Type[] components )
 	{
 		return LoadDummyScene_Impl( ctx, mode, unloadOptions, createSceneObjects, components );
 	}
 	
 	// Virtual interface for loading customisation
-	protected abstract		String?					GetSceneName_Impl			( SceneRef @ref );
-	protected abstract 		LoadSceneTask			LoadSceneAsync_Impl			( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context );
-	protected virtual		LoadSceneTask			LoadDummyScene_Impl			( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components )
-	{
-		var sceneTask			= new LoadSceneTask(ctx, default, new LoadSceneTask.Parameters(mode));
-
-		return sceneTask.Run( LoadDummyScene_Internal( sceneTask, mode, unloadOptions, createSceneObjects, components ) );
-		
-		static async UniTask<Scene>  LoadDummyScene_Internal( LoadSceneTask sceneTask, LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components )
-		{
-			List<Scene>?	scenesToUnload	= null; 
-				
-			if (mode == LoadSceneMode.Single)
-			{
-				scenesToUnload = new();
-				var count = SceneManager.loadedSceneCount;
-				for (var i = count - 1; i >= 0; i--)
-					scenesToUnload.Add( SceneManager.GetSceneAt(i) );
-			}
-		
-			var dummySceneName = "Dummy";
-			
-			while(true)
-			{
-				var existingDummy = SceneManager.GetSceneByName(dummySceneName);
-				if (!existingDummy.IsValid())
-					break;
-				
-				dummySceneName += "2";
-			}
-		
-			var dummy	= SceneManager.CreateScene(dummySceneName);
-			sceneTask.Scene	= dummy;
-			
-			await UniTask.NextFrame();
-		
-			SceneManager.SetActiveScene(dummy);
-		
-			var dummyObj = new GameObject( "DummyObj", components );
-		
-#if UNITY_URP
-			var hasCam = components.Contains(typeof(Camera));
-			if (hasCam)
-				dummyObj.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
-#elif UNITY_HDRP
-			var hasCam = components.Contains(typeof(Camera));
-			if (hasCam)
-				dummyObj.AddComponent<UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData>();
-#endif
-		
-			if ( createSceneObjects != null)
-			{
-				try						{ createSceneObjects(); }
-				catch (Exception ex)	{ Debug.LogException(ex); }
-			}
-		
-			sceneTask.StepProgress = 0.9f;
-				
-			if (scenesToUnload != null)
-			{
-				foreach (var scn in scenesToUnload)
-					if (scn.IsValid())
-						await SceneManager.UnloadSceneAsync( scn, unloadOptions ).ToUniTask();
-			}
-		
-			sceneTask.StepProgress = 1f;
-			
-			return dummy;
-		}
-	}
+	protected virtual		String?			GetSceneName_Impl	( SceneRef @ref )													=> ContentService.Ref.GetSceneName	(@ref);
+	protected virtual		LoadSceneTask	LoadSceneAsync_Impl	( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context )	=> ContentService.Ref.LoadSceneAsync(@ref, p, context);
+	protected virtual		LoadSceneTask	LoadDummyScene_Impl	( GameObject ctx, LoadSceneMode mode, UnloadSceneOptions unloadOptions, Action? createSceneObjects, params Type[] components ) => ContentService.Ref.LoadDummyScene(ctx, mode, unloadOptions, createSceneObjects, components); 
 	
-	protected static async	UniTask<Scene>			SceneLoadWaitImpl			( AsyncOperation ao, LoadSceneTask sceneTask )	
-	{
-		ao.allowSceneActivation	= sceneTask.Params.AllowActivation;
-		ao.priority				= sceneTask.Params.Priority;
-	
-		while ( !ao.isDone && ( ao.allowSceneActivation || ao.progress < 0.9f ) )
-		{
-			await UniTask.NextFrame();
-			sceneTask.StepProgress = ao.progress;
-		}
-				
-		sceneTask.StepProgress = 0.9f;
-		
-		if (!ao.allowSceneActivation)
-		{
-			while (sceneTask.DelaySceneActivation)
-				await UniTask.NextFrame();
-
-			ao.allowSceneActivation = true;
-			await UniTask.NextFrame( );
-		}
-		
-		while (ao.progress < 1.0f)
-		{
-			sceneTask.StepProgress = ao.progress;
-			await UniTask.NextFrame();
-		}
-		
-		return sceneTask.Scene;
-	}
+	protected static		UniTask<Scene>	SceneLoadWaitImpl	( AsyncOperation ao, LoadSceneTask sceneTask ) => ContentService.WaitSceneLoad(ao, sceneTask);
 }
 
 
 public class LoadSceneTask : IProgress<Single>
 {
 	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-	private static void StaticClear( ) => NewLoadSceneTaskStarted				= null;
+	private static void StaticClear( ) => NewLoadSceneTaskStarted	= null;
 
 	[Obsolete( "Use overload with SceneRef instead", false )]
 	public LoadSceneTask( GameObject context, Parameters p, Scene scene = default, Single rangeMin = 0, Single rangeMax = 1, String? description = "Loading..." ): this(context, default, p, scene, rangeMin, rangeMax, description) { }

@@ -15,7 +15,7 @@ public struct SceneRef : IRefLike, IEquatable<SceneRef>
 	public static	SceneRef		None			=> default;
 	public			AssetRef		Raw				=> new( _uid, 0 );
 
-	public	static	SceneLoader		SceneLoader		= new SceneLoader_Resources();
+	public	static	SceneLoader		SceneLoader		= new SceneLoader();
 
 	public override Int32			GetHashCode		( )									=> _uid.GetHashCode();
 	public override	Boolean			Equals			( System.Object? obj )				=> obj is SceneRef sr && this == sr;

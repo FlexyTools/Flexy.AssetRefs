@@ -42,7 +42,7 @@ public struct AssetRef : IRefLike, IEquatable<AssetRef>
 	public			Boolean		IsNone		=> _uid == default;
 	public static	AssetRef	None		=> default;
 
-	public	static	AssetLoader	AssetLoader	= new AssetLoaderResources();
+	public	static	AssetLoader	AssetLoader	= new AssetLoader();
 
 	public override	Int32		GetHashCode		( )									=> _uid.GetHashCode() ^ _subId.GetHashCode( );
 	public override	Boolean		Equals			( System.Object obj )				=> obj is AssetRef ar && this == ar;

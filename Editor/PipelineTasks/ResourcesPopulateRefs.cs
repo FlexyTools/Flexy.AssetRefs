@@ -2,10 +2,13 @@ namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
 public class ResourcesPopulateRefs : IPipelineTask
 {
+	[SerializeField] ContentService_Resources	ServicePrefab	= null!;
 	[SerializeField]	Boolean		AddScenesToBuildSettings;
 
 	public void Run( Pipeline ppln, Context ctx )
 	{
+		ContentService.EditorSetupContentServiceResourceRef(ServicePrefab);
+	
 		Debug.Log			( $"[ResourcesIRefSourceBuilder] - CreateResourcesAssetForeachAssetRefSource" );
 		
 		Directory.CreateDirectory( "Assets/Resources/Fun.Flexy/AssetRefs" );

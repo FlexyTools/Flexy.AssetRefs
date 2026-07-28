@@ -6,9 +6,9 @@ using UnityEditor;
 
 namespace Flexy.AssetRefs;
 
-public abstract class AssetLoader
+public class AssetLoader
 {
-	public		 			UniTask<T?>				LoadAssetAsync<T>			( AssetRef @ref ) where T:Object		
+	public		 		UniTask<T?>		LoadAssetAsync<T>		( AssetRef @ref ) where T:Object		
 	{
 		if ( @ref.IsNone )
 			return UniTask.FromResult<T?>( null );
@@ -37,7 +37,7 @@ public abstract class AssetLoader
 			return UniTask.FromResult<T?>(null);
 		}
 	}
-	public 					T?						LoadAssetSync<T>			( AssetRef @ref ) where T:Object		
+	public 				T?				LoadAssetSync<T>		( AssetRef @ref ) where T:Object		
 	{
 		if (@ref.IsNone)
 			return null;
@@ -58,16 +58,12 @@ public abstract class AssetLoader
 		}
 	}
 	
-	public	static			T?						EditorLoadAsset<T>			( AssetRef<T> address ) where T : Object
+	public	static		T?				EditorLoadAsset<T>		( AssetRef<T> address ) where T : Object
 	{
 		var asset = EditorLoadAssetRaw	(address);
-		
-		if (asset is GameObject go && typeof(T).IsSubclassOf(typeof(Component)))
-			return go.GetComponent<T>();
-		
-		return (T?)asset;
+		return ContentService.GetSpecializedAsset<T>(asset);
 	}
-	public	static			Object?					EditorLoadAssetRaw			( AssetRef address )					
+	public	static		Object?			EditorLoadAssetRaw		( AssetRef address )					
 	{
 #if UNITY_EDITOR
 		
@@ -97,7 +93,7 @@ public abstract class AssetLoader
 		
 		return null;
 	}
-	public	static			AssetRef				EditorGetAssetAddress		( Object asset )						
+	public	static		AssetRef		EditorGetAssetAddress	( Object asset )						
 	{
 		if (!asset)
 			return default;
@@ -125,7 +121,7 @@ public abstract class AssetLoader
 		
 		return default;
 	}
-	public	static			Type?					EditorGetAssetType			( AssetRef @ref )						
+	public	static		Type?			EditorGetAssetType		( AssetRef @ref )						
 	{
 #if UNITY_EDITOR
 		if (@ref.IsNone)
@@ -146,6 +142,6 @@ public abstract class AssetLoader
 	}
 	
 	// Virtual interface for loding customisation
-	protected abstract		UniTask<T?>				LoadAssetAsync_Impl<T>		( AssetRef @ref ) where T:Object;
-	protected abstract		T?						LoadAssetSync_Impl<T>		( AssetRef @ref ) where T:Object;
+	protected virtual	T?				LoadAssetSync_Impl<T>	( AssetRef @ref )	where T : Object	=> ContentService.Ref.LoadAssetSync<T>  (@ref);
+	protected virtual	UniTask<T?>		LoadAssetAsync_Impl<T>	( AssetRef @ref )	where T : Object	=> ContentService.Ref.LoadAssetAsync<T> (@ref);
 }

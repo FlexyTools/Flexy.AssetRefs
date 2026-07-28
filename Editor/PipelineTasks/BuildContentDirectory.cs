@@ -9,7 +9,7 @@ namespace Flexy.AssetRefs.Editor.PipelineTasks;
 [Serializable]
 public class BuildContentDirectory : IPipelineTask
 {
-	[SerializeField] ContentService			ServicePrefab	= null!;
+	[SerializeField] ContentService_LocalContentDirectory	ServicePrefab	= null!;
 	[SerializeField] String					OutputPath		= "Assets/StreamingAssets/MainCD";
 	[SerializeField] String					BuildName		= "GameContent";
 	[SerializeField] CompressionType		Compression		= default;
@@ -113,10 +113,11 @@ public class BuildContentDirectory : IPipelineTask
 			}
 		};
 
+		var report = BuildPipeline.BuildContentDirectory(parameters);
+		
 		if (CleanupContentCatalog)
 			AssetDatabase.DeleteAsset(CatalogAssetPath);
-
-		var report = BuildPipeline.BuildContentDirectory(parameters);
+		
 		if (report.summary.result != BuildResult.Succeeded)
 			throw new BuildFailedException($"Content directory build failed: {report.summary.result}.");
 
