@@ -1,3 +1,4 @@
+#if UNITY_6000_6_OR_NEWER
 using Unity.Loading;
 
 namespace Flexy.AssetRefs.AssetLoaders
@@ -49,3 +50,4 @@ namespace Flexy.AssetRefs.AssetLoaders
 		}
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_6000_6_OR_NEWER
 namespace Flexy.AssetRefs.AssetLoaders;
 
 public class AssetLoader_ContentDirectory : AssetLoader
@@ -9,3 +10,4 @@ public class AssetLoader_ContentDirectory : AssetLoader
 	protected override UniTask<T?>	LoadAssetAsync_Impl<T>	( AssetRef @ref )	where T : class	=> _service.LoadContentAssetAsync<T>(@ref);
 	protected override T?			LoadAssetSync_Impl<T>	( AssetRef @ref )	where T : class	=> _service.LoadContentAssetSync<T>	(@ref);
 }
+#endif

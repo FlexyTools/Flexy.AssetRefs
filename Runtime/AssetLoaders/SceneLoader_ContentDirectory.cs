@@ -1,3 +1,4 @@
+#if UNITY_6000_6_OR_NEWER
 namespace Flexy.AssetRefs.AssetLoaders;
 
 public class SceneLoader_ContentDirectory : SceneLoader
@@ -11,3 +12,4 @@ public class SceneLoader_ContentDirectory : SceneLoader
 	
 	internal static		UniTask<Scene>	WaitSceneLoad		( AsyncOperation ao, LoadSceneTask sceneTask )	=> SceneLoadWaitImpl(ao, sceneTask);
 }
+#endif

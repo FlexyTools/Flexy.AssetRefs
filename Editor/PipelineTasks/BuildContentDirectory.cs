@@ -1,3 +1,4 @@
+#if UNITY_6000_6_OR_NEWER
 using Unity.Loading;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -124,3 +125,4 @@ public class BuildContentDirectory : IPipelineTask
 			$"Assets: {assetRefs.Count}, scenes: {sceneRefs.Count}, size: {report.summary.totalSize} bytes.");
 	}
 }
+#endif

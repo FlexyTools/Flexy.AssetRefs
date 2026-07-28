@@ -1,3 +1,4 @@
+#if UNITY_6000_6_OR_NEWER
 using System.IO;
 using Unity.Loading;
 
@@ -191,3 +192,4 @@ namespace Flexy.AssetRefs
 		}
 	}
 }
+#endif
