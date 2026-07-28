@@ -14,7 +14,7 @@ namespace Flexy.AssetRefs
 		private const	String	PrefabResourceDirectory		= "Assets/Resources/Fun.Flexy";
 		private const	String	PrefabResourceAssetPath		= PrefabResourceDirectory + "/ContentServiceRef.asset";
 
-		private static	void	SpawnContentService		( )	
+		private static		void	SpawnContentService		( )	
 		{
 			GameObject? prefab = null;
 		
@@ -69,8 +69,9 @@ namespace Flexy.AssetRefs
 			DontDestroyOnLoad(serviceObject);
 			serviceObject.SetActive(true);
 		}
-		public virtual	void	Awake					( ) { Ref = this; }
-
+		protected virtual	void	Awake					( ) { Ref = this; }
+		protected virtual	void	OnDestroy				( ) { Ref = null!; }
+	
 		public static	ContentService	Ref {get; private set;} = null!;
 
 		public abstract	T?				LoadAssetSync<T>	( AssetRef @ref ) where T : Object;

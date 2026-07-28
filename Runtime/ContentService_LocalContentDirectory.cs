@@ -12,9 +12,14 @@ namespace Flexy.AssetRefs
 		private ContentDirectoryHandle		_contentDirectory;
 		private ContentDirectoryCatalog[]	_contentCatalogs = Array.Empty<ContentDirectoryCatalog>();
 
-		public override void			Awake	( )			
+		protected override void			Awake		( )		
 		{
 			base.Awake();
+
+			#if UNITY_EDITOR
+			foreach (var h in ContentLoadManager.GetContentDirectories())
+				ContentLoadManager.UnregisterContentDirectory(h);
+			#endif
 		
 			Debug.Log($"[ContentService] Awake and start register from '{_contentDirectoryPath}'");
 		
@@ -32,7 +37,7 @@ namespace Flexy.AssetRefs
 			if (!Directory.Exists(contentDirectoryPath))
 				throw new DirectoryNotFoundException($"Content directory was not found at '{contentDirectoryPath}'.");
 
-			_contentDirectory = ContentLoadManager.RegisterContentDirectory(contentDirectoryPath);
+				_contentDirectory = ContentLoadManager.RegisterContentDirectory(contentDirectoryPath);
 			if (!_contentDirectory.IsValid)
 				throw new InvalidOperationException($"Content directory could not be registered from '{contentDirectoryPath}'.");
 
@@ -50,6 +55,13 @@ namespace Flexy.AssetRefs
 			}
 
 			Debug.Log($"[ContentService] Registered content directory '{_contentDirectory.BuildName}' from '{contentDirectoryPath}'. Catalogs: {_contentCatalogs.Length}.");
+		}
+		protected override void			OnDestroy	( )		
+		{
+			base.OnDestroy();
+		
+			if (_contentDirectory.IsValid)
+				ContentLoadManager.UnregisterContentDirectory(_contentDirectory);
 		}
 
 		public override			T?				LoadAssetSync<T>	( AssetRef @ref ) where T : class	
