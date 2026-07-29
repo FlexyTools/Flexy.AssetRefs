@@ -7,7 +7,8 @@ public class ResourcesPopulateRefs : IPipelineTask
 
 	public void Run( Pipeline ppln, Context ctx )
 	{
-		ContentService.EditorSetupContentServiceResourceRef(ServicePrefab);
+		if (ServicePrefab)
+			ContentService.EditorSetupContentServiceResourceRef(ServicePrefab);
 	
 		Debug.Log			( $"[ResourcesIRefSourceBuilder] - CreateResourcesAssetForeachAssetRefSource" );
 		

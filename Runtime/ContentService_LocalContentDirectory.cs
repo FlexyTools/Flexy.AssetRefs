@@ -37,7 +37,7 @@ namespace Flexy.AssetRefs
 			if (!Directory.Exists(contentDirectoryPath))
 				throw new DirectoryNotFoundException($"Content directory was not found at '{contentDirectoryPath}'.");
 
-				_contentDirectory = ContentLoadManager.RegisterContentDirectory(contentDirectoryPath);
+			_contentDirectory = ContentLoadManager.RegisterContentDirectory(contentDirectoryPath);
 			if (!_contentDirectory.IsValid)
 				throw new InvalidOperationException($"Content directory could not be registered from '{contentDirectoryPath}'.");
 
@@ -116,7 +116,7 @@ namespace Flexy.AssetRefs
 		}
 		
 #else
-		public override void			Awake				( )	=> throw new NotImplementedException();
+		protected override void			Awake				( )	=> throw new NotImplementedException();
 		public override T?				LoadAssetSync<T>	( AssetRef @ref ) where T : class => throw new NotImplementedException();
 		public override UniTask<T?>		LoadAssetAsync<T>	( AssetRef @ref ) where T : class => throw new NotImplementedException();
 		public override String			GetSceneName		( SceneRef @ref ) => throw new NotImplementedException();
