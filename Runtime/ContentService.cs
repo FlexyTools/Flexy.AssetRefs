@@ -22,7 +22,7 @@ namespace Flexy.AssetRefs
 			if (serviceRef)
 			{
 				prefab = serviceRef.Ref as GameObject;
-				if (!prefab)
+				if (prefab == null)
 				{
 					Debug.LogError($"Resource reference '{PrefabResourcePath}' does not point to a GameObject prefab.");
 					prefab = null;
@@ -40,7 +40,7 @@ namespace Flexy.AssetRefs
 
 			GameObject serviceObject;
 		
-			if (prefab)
+			if (prefab != null)
 			{
 				var prefabWasActive = prefab.gameObject.activeSelf;
 
