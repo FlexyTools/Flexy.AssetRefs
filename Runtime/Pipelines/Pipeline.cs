@@ -1,3 +1,5 @@
+using Flexy.AssetRefs.Pipelines;
+
 namespace Flexy.AssetRefs.Pipelines
 {
 	[CreateAssetMenu(fileName = "Pipeline.ppl.asset", menuName = "Flexy/AssetRefs/Pipeline")]
@@ -134,9 +136,12 @@ namespace Flexy.AssetRefs.Pipelines
 		public void		Run			( Pipeline ppl, Context ctx );
 		public String	GetInfo		() => GetType().Name;
 	}
-	
-	#if UNITY_EDITOR
-	[MovedFrom(true, sourceNamespace:"Flexy.AssetRefs")]
+}
+
+namespace Flexy.AssetRefs.PipelineTasks
+{
+#if UNITY_EDITOR
+	[MovedFrom(true, sourceNamespace:"Flexy.AssetRefs.Pipelines")]
 	public class RunPipeline : IPipelineTask
 	{
 		[SerializeField]	Pipeline	_pipeline = null!;
@@ -144,5 +149,5 @@ namespace Flexy.AssetRefs.Pipelines
 		public void		Run		( Pipeline ppln, Context ctx )	=> _pipeline.RunTasks(ctx);
 		public String	GetInfo	( )								=> GetType().Name + ": " + _pipeline.name;
 	}
-	#endif
+#endif
 }

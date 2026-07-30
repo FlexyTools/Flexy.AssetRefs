@@ -7,19 +7,130 @@ namespace Flexy.AssetRefs.Editor
 	[CustomEditor( typeof(Pipeline), true), CanEditMultipleObjects]
 	public class PipelineEditor : UnityEditor.Editor
 	{
-		public override VisualElement CreateInspectorGUI()
-		{
-			var root = new VisualElement { name = "Root" } ;
-			InspectorElement.FillDefaultInspector( root, serializedObject , this );
-			root.Add( CreatePreviewGui() );
-			return root;
-		}
-	
 		private VisualElement	_tabs			= null!;
 		private VisualElement	_tabsContent	= null!;
 		private VisualElement	_tabControl		= null!;
+	
+		public override VisualElement	CreateInspectorGUI				( )	
+		{
+			var root = new VisualElement { name = "Root" } ;
+			InspectorElement.FillDefaultInspector( root, serializedObject , this );
+			RegisterPipelineTasksListPatch( root );
+			root.Add( CreatePreviewGui() );
+			return root;
+		}
 
-		public	VisualElement	CreatePreviewGui	( )	
+		protected			void		RegisterPipelineTasksListPatch	( VisualElement root )	
+		{
+			void OnGeometryChanged( GeometryChangedEvent _ )
+			{
+				PatchPipelineTasksList(root);
+			}
+
+			root.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+		}
+		private				Boolean		PatchPipelineTasksList			( VisualElement root )	
+		{
+			const String patchedClass = "flexy-assetrefs-pipeline-field-patched";
+			if (root.ClassListContains(patchedClass))
+				return true;
+
+			var listView = root.Query<ListView>().ToList().FirstOrDefault(element => !IsInsideListItem(element, root));
+			if (listView == null)
+				return false;
+
+			var footer = root.Query<VisualElement>(name: "unity-list-view__footer").ToList().FirstOrDefault(element => !IsInsideListItem(element, root));
+			if (footer == null)
+				return false;
+
+			var addButton = footer.Q<Button>("unity-list-view__add-button");
+			var removeButton = footer.Q<Button>("unity-list-view__remove-button");
+			if (addButton == null || removeButton == null)
+				return false;
+
+			addButton.clickable = new Clickable(() => ShowAddPipelineTaskMenu(addButton));
+			removeButton.clickable = new Clickable(() => RemoveSelectedPipelineTask(listView));
+			root.AddToClassList(patchedClass);
+			return true;
+		}
+		protected static	Boolean		IsInsideListItem				( VisualElement element, VisualElement root )
+		{
+			for (var parent = element.parent; parent != null && parent != root; parent = parent.parent)
+				if (parent.ClassListContains("unity-list-view__item"))
+					return true;
+
+			return false;
+		}
+		private				void		ShowAddPipelineTaskMenu			( Button addButton )	
+		{
+			ShowPipelineTaskMenu(addButton, typeof(IPipelineTask), type =>
+			{
+				serializedObject.Update();
+
+				var tasksProperty = serializedObject.FindProperty("EnabledTasks");
+				var index = tasksProperty.arraySize;
+				tasksProperty.arraySize++;
+
+				var element = tasksProperty.GetArrayElementAtIndex(index);
+				element.FindPropertyRelative("Enabled").boolValue = true;
+				element.FindPropertyRelative("Task").managedReferenceValue = Activator.CreateInstance(type);
+
+				serializedObject.ApplyModifiedProperties();
+				serializedObject.Update();
+			});
+		}
+		protected virtual	void		RemoveSelectedPipelineTask		( ListView listView )	
+		{
+			var index = listView.selectedIndex;
+			if (index < 0)
+			{
+				Debug.Log("No pipeline task selected.");
+				return;
+			}
+
+			serializedObject.Update();
+
+			var tasksProperty = serializedObject.FindProperty("EnabledTasks");
+			if (index >= tasksProperty.arraySize)
+				return;
+
+			tasksProperty.DeleteArrayElementAtIndex(index);
+			serializedObject.ApplyModifiedProperties();
+			serializedObject.Update();
+		}
+
+		private static		void		ShowPipelineTaskMenu			( Button button, Type taskType, Action<Type> choose )
+		{
+			var types = GetAssignableTypes(taskType);
+			var menu = new GenericMenu();
+
+			foreach (var type in types)
+			{
+				var namespaceName = String.Join(".", (type.Namespace ?? "").Split('.').Where(part => part != "Editor" && part != "PipelineTasks"));
+				namespaceName = String.IsNullOrWhiteSpace(namespaceName) ? "Global" : namespaceName;
+				var taskName = ObjectNames.NicifyVariableName(type.Name);
+				menu.AddItem(new GUIContent($"{namespaceName}/{taskName}"), false, () => choose(type));
+			}
+
+			menu.DropDown(button.worldBound);
+		}
+		private static		List<Type>	GetAssignableTypes				( Type type )
+		{
+			var nonUnityTypes = TypeCache.GetTypesDerivedFrom(type).Where(IsAssignableNonUnityType).ToList();
+			nonUnityTypes.Sort((left, right) => String.Compare(left.FullName, right.FullName, StringComparison.Ordinal));
+			return nonUnityTypes;
+
+			Boolean IsAssignableNonUnityType( Type candidateType )
+			{
+				return type.IsAssignableFrom(candidateType)
+					&& !candidateType.IsAbstract
+					&& !candidateType.IsInterface
+					&& !candidateType.IsSubclassOf(typeof(UnityEngine.Object))
+					&& candidateType.GetCustomAttributes().All(attribute => !attribute.GetType().Name.Contains("BakingType"));
+			}
+		}
+
+		protected		VisualElement	CreatePreviewGui				( )	
 		{
 			var root	= new VisualElement { name = "Additional UI" };
 			var buttons	= new VisualElement { name = "Buttons", style = { flexDirection = FlexDirection.Row, marginBottom = 15} };
@@ -158,37 +269,13 @@ namespace Flexy.AssetRefs.Editor
 			
 			var enabledCheckbox		= new Toggle( ){bindingPath = property.FindPropertyRelative("Enabled").propertyPath, style = { marginLeft = 0, marginRight = 5}};
 			var nameLabel			= new Label( displayName ){style = {unityFontStyleAndWeight = FontStyle.Bold, alignSelf = Align.Center } };
-			var button				= new Button { text = "⦿", style = { width = 20, paddingLeft = 0, paddingRight = 0, marginLeft = 0, marginRight = -2} };
 			
 			enabledCheckbox.RegisterValueChangedCallback( v => foldout.value = true );
-			
-			button.clicked += () =>
-			{
-				var types = GetAssignableTypes( GetType( taskProp.managedReferenceFieldTypename ) ).ToArray()!;
-				var names = types.Select( t => ObjectNames.NicifyVariableName( t?.Name ) ).ToArray();
-			
-				var gm = new GenericMenu();
-
-				for (var i = 0; i < names.Length; i++)
-					gm.AddItem(new GUIContent(names[i]), false, Choose, (i, taskProp, types));
-			
-				gm.DropDown(button.worldBound);
-				
-				static void Choose(System.Object userData)
-				{
-					var (newIndex, taskProp, types) = ((Int32, SerializedProperty, Type[]))userData;
-					
-					taskProp.managedReferenceValue = Activator.CreateInstance( types[newIndex] );
-					taskProp.serializedObject.ApplyModifiedProperties();
-					taskProp.serializedObject.Update();
-				}
-			};
 			var flexibleSpace		= new VisualElement { style = { flexGrow = 1}};
 			
 			header.Add( enabledCheckbox );
 			header.Add( nameLabel );
 			header.Add( flexibleSpace );
-			header.Add( button );
 			
 			var subProp	= taskProp.Copy();
 			var depth	= subProp.depth;
@@ -198,23 +285,6 @@ namespace Flexy.AssetRefs.Editor
 			
 			foldout.BindProperty( property );
 			foldout.value = true;
-		}
-		
-		private static	Type			GetType					( String typename )		
-		{
-			var parts		= typename.Split( ' ' );
-			return Type.GetType( $"{parts[1]}, {parts[0]}", false );
-		}
-		private static	List<Type>		GetAssignableTypes		( Type type )			
-		{
-			var nonUnityTypes	= TypeCache.GetTypesDerivedFrom(type).Where(IsAssignableNonUnityType).ToList();
-			nonUnityTypes.Sort( (l, r) => String.Compare( l.FullName, r.FullName, StringComparison.Ordinal) );
-			return nonUnityTypes;
-        
-			Boolean IsAssignableNonUnityType(Type type)
-			{
-				return ( type.IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface ) && !type.IsSubclassOf(typeof(UnityEngine.Object)) && type.GetCustomAttributes().All( a => !a.GetType().Name.Contains( "BakingType" )  );
-			}
 		}
 	}
 }
