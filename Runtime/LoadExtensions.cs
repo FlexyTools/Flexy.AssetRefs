@@ -2,8 +2,9 @@ namespace Flexy.AssetRefs.LoadExtensions;
 
 public static class LoadExts
 {
-   	public static	T?				LoadAssetSync<T>	( this AssetRef<T> @ref ) where T : Object		=> AssetRef.AssetLoader.LoadAssetSync<T>( @ref );
-    public static	UniTask<T?>		LoadAssetAsync<T>	( this AssetRef<T> @ref ) where T : Object		=> AssetRef.AssetLoader.LoadAssetAsync<T>( @ref );
+   	public static	T?				LoadAssetSync<T>	( this AssetRef<T> @ref ) where T : Object		=> AssetRef.AssetLoader.LoadAssetSync<T>	( @ref );
+    public static	UniTask<T?>		LoadAssetAsync<T>	( this AssetRef<T> @ref ) where T : Object		=> AssetRef.AssetLoader.LoadAssetAsync<T>	( @ref );
+    public static	void			UnloadAsset<T>		( this AssetRef<T> @ref ) where T : Object		=> AssetRef.AssetLoader.UnloadAsset<T>		( @ref );
 
     // Scene loading have GameObject context parameter - it is used internally to know where scene loading was called from.
     // You just need to pass gameObject of MonoBehaviour. i.e. this.gameObject  

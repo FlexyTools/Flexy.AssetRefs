@@ -74,7 +74,12 @@ namespace Flexy.AssetRefs
 			var asset = await GetContentLoadable(@ref).LoadAsync();
 			return GetSpecializedAsset<T>(asset);
 		}
-		
+
+		public override void UnloadAsset<T>(AssetRef @ref)
+		{
+			GetContentLoadable(@ref).Release();
+		}
+
 		public override	String			GetSceneName		( SceneRef @ref )					
 		{
 			foreach (var catalog in _contentCatalogs)
@@ -119,6 +124,7 @@ namespace Flexy.AssetRefs
 		protected override void			Awake				( )	=> throw new NotImplementedException();
 		public override T?				LoadAssetSync<T>	( AssetRef @ref ) where T : class => throw new NotImplementedException();
 		public override UniTask<T?>		LoadAssetAsync<T>	( AssetRef @ref ) where T : class => throw new NotImplementedException();
+		public override void			UnloadAsset<T>		( AssetRef @ref ) => throw new NotImplementedException();
 		public override String			GetSceneName		( SceneRef @ref ) => throw new NotImplementedException();
 		public override LoadSceneTask	LoadSceneAsync		( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context ) => throw new NotImplementedException();
 #endif

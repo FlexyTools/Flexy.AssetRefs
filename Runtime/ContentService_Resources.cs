@@ -41,6 +41,10 @@ namespace Flexy.AssetRefs
 		
 			return GetSpecializedAsset<T>(resourceRef.Ref);
 		}
+		public override			void			UnloadAsset<T>			( AssetRef @ref )						
+		{
+			ObjectAssetsCollector.UnloadObjectAssets(LoadAssetSync<T>(@ref));
+		}
 		public override			String			GetSceneName			( SceneRef @ref )						
 		{
 			var asset		= Resources.Load<ResourceRef>($"Fun.Flexy/AssetRefs/{@ref.Uid}");

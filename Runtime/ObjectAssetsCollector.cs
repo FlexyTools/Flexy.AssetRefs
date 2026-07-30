@@ -10,7 +10,7 @@ public static class ObjectAssetsCollector
 	
 	public static IReadOnlyCollection<Object> CollectedAssets => _tempSet;
 	
-	public static	void	UnloadObjectAssets		( Object obj )		
+	public static	void	UnloadObjectAssets		( Object? obj )		
 	{
 		_tempSet.Clear();
 		CollectAssetsInternal(obj);
@@ -30,7 +30,7 @@ public static class ObjectAssetsCollector
 		_tempSet.Clear();
 	}	
 		
-	private	static	void	CollectAssetsInternal	( Object obj )		
+	private	static	void	CollectAssetsInternal	( Object? obj )		
 	{
 		if (obj == null) 
 			return;

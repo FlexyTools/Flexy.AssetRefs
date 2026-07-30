@@ -57,6 +57,24 @@ public class AssetLoader
 			return null;
 		}
 	}
+	public 				void			UnloadAsset<T>			( AssetRef @ref ) where T:Object		
+	{
+		if (@ref.IsNone)
+			return;
+		
+		try
+		{
+#if UNITY_EDITOR
+			if (!EditorBehaviourAndMenu.RuntimeBehaviorEnabled || !EditorApplication.isPlayingOrWillChangePlaymode)
+				return;
+#endif
+			UnloadAsset_Impl<T>(@ref);
+		}
+		catch (Exception ex)
+		{
+			Debug.LogException(ex);
+		}
+	}
 	
 	public	static		T?				EditorLoadAsset<T>		( AssetRef<T> address ) where T : Object
 	{
@@ -144,4 +162,5 @@ public class AssetLoader
 	// Virtual interface for loding customisation
 	protected virtual	T?				LoadAssetSync_Impl<T>	( AssetRef @ref )	where T : Object	=> ContentService.Ref.LoadAssetSync<T>  (@ref);
 	protected virtual	UniTask<T?>		LoadAssetAsync_Impl<T>	( AssetRef @ref )	where T : Object	=> ContentService.Ref.LoadAssetAsync<T> (@ref);
+	protected virtual	void			UnloadAsset_Impl<T>		( AssetRef @ref )	where T : Object	=> ContentService.Ref.UnloadAsset<T>	(@ref);
 }

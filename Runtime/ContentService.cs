@@ -76,6 +76,7 @@ namespace Flexy.AssetRefs
 
 		public abstract	T?				LoadAssetSync<T>	( AssetRef @ref ) where T : Object;
 		public abstract	UniTask<T?>		LoadAssetAsync<T>	( AssetRef @ref ) where T : Object;
+		public abstract	void			UnloadAsset<T>		( AssetRef @ref ) where T : Object;
 			
 		public abstract	String			GetSceneName		( SceneRef @ref );
 		public abstract	LoadSceneTask	LoadSceneAsync		( SceneRef @ref, LoadSceneTask.Parameters p, GameObject context );
