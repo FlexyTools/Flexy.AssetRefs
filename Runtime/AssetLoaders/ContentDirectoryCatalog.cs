@@ -29,6 +29,7 @@ namespace Flexy.AssetRefs.AssetLoaders
 			if (assetRefs.Length != assetLoadables.Length || sceneLoadables.Length != sceneNames.Length)
 				throw new InvalidOperationException($"Content catalog arrays have different lengths");
 	
+			_assetRefs			= assetRefs;
 			_assetLoadables		= assetLoadables;
 			_sceneLoadables		= sceneLoadables;
 			_sceneNames			= sceneNames;
