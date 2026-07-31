@@ -142,6 +142,7 @@ namespace Flexy.AssetRefs.PipelineTasks
 {
 #if UNITY_EDITOR
 	[MovedFrom(true, sourceNamespace:"Flexy.AssetRefs.Pipelines")]
+	[Serializable]
 	public class RunPipeline : IPipelineTask
 	{
 		[SerializeField]	Pipeline	_pipeline = null!;

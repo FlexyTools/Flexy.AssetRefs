@@ -1,5 +1,6 @@
 namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
+[Serializable]
 public class AddRefsFromSODeep : IPipelineTask
 {
 	[SerializeField] ScriptableObject _source = null!;

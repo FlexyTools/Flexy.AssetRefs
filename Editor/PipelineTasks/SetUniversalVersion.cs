@@ -1,5 +1,6 @@
 namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
+[Serializable]
 public class SetUniversalVersion : IPipelineTask
 {
 	[SerializeField]	String?		_versionTag;

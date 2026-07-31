@@ -3,6 +3,7 @@ using UnityEditor.Build.Reporting;
 
 namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
+[Serializable]
 public class RunOnBuildPreprocess : IPipelineTask, IPreprocessBuildWithReport
 {
 	public static Boolean DisableRunOnce;

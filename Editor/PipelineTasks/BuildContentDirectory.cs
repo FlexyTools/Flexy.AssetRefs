@@ -33,8 +33,7 @@ public class BuildContentDirectory : IPipelineTask
 			throw new BuildFailedException($"{nameof(CatalogAssetPath)} must be an asset path below 'Assets/'.");
 
 		var assetRefs		= new List<AssetRef>();
-		var assetLoadables	= new List<Loadable<Object>>();
-		var sceneRefs		= new List<SceneRef>();
+		var assetLoadables	= new List<LoadableObjectId>();
 		var sceneLoadables	= new List<LoadableSceneId>();
 		var sceneNames		= new List<String>();
 
@@ -55,7 +54,7 @@ public class BuildContentDirectory : IPipelineTask
 				throw new BuildFailedException($"Can not create LoadableObjectId for '{@ref}' ({asset.name}).");
 
 			assetRefs		.Add(@ref);
-			assetLoadables	.Add(new Loadable<Object>(objectId));
+			assetLoadables	.Add(objectId);
 		}
 
 		var sceneList = ctx.Get<SceneList>().Where(@ref => !@ref.IsNone).Distinct().ToList();
@@ -72,7 +71,6 @@ public class BuildContentDirectory : IPipelineTask
 			if (!sceneAsset)
 				throw new BuildFailedException($"SceneRef '{sceneRef}' does not point to a scene asset.");
 
-			sceneRefs		.Add(sceneRef);
 			sceneLoadables	.Add(LoadableSceneIdEditorUtility.CreateLoadableSceneId(sceneRef.Uid.ToGUID()));
 			sceneNames		.Add(sceneAsset.name);
 		}
@@ -91,7 +89,7 @@ public class BuildContentDirectory : IPipelineTask
 			AssetDatabase.CreateAsset(catalog, CatalogAssetPath);
 		}
 
-		catalog			.SetLoadables	(assetRefs.ToArray(), assetLoadables.ToArray(), sceneRefs.ToArray(), sceneLoadables.ToArray(), sceneNames.ToArray());
+		catalog			.SetLoadables	(assetRefs.ToArray(), assetLoadables.ToArray(), sceneLoadables.ToArray(), sceneNames.ToArray());
 		EditorUtility	.SetDirty		(catalog);
 		AssetDatabase	.SaveAssets		();
 		AssetDatabase	.ImportAsset	(CatalogAssetPath, ImportAssetOptions.ForceSynchronousImport);
@@ -123,7 +121,7 @@ public class BuildContentDirectory : IPipelineTask
 
 		Debug.Log(
 			$"[ContentCatalogBuilder] Built content directory '{BuildName}' at '{Path.GetFullPath(OutputPath)}'. " +
-			$"Assets: {assetRefs.Count}, scenes: {sceneRefs.Count}, size: {report.summary.totalSize} bytes.");
+			$"Assets: {assetRefs.Count}, scenes: {sceneLoadables.Count}, size: {report.summary.totalSize} bytes.");
 	}
 }
 #endif

@@ -2,6 +2,7 @@ using UnityEditor.Build.Reporting;
 
 namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
+[Serializable]
 public class BuildPlayer : IPipelineTask
 {
 	[SerializeField] private String		_outputDirectory	= "Builds";

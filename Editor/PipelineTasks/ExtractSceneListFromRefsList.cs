@@ -1,5 +1,6 @@
 namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
+[Serializable]
 public class ExtractSceneListFromRefsList : IPipelineTask
 {
 	public void Run( Pipeline ppln, Context ctx )

@@ -1,6 +1,7 @@
 namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
 [MovedFrom(true, sourceNamespace:"Flexy.AssetRefs.Pipelines", sourceAssembly:"Flexy.AssetRefs")]
+[Serializable]
 public class AddRefsDirect : IPipelineTask
 {
 	[FormerlySerializedAs("DirectReferences")]

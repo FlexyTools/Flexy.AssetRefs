@@ -1,6 +1,7 @@
 namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
 [MovedFrom(true, sourceNamespace:"Flexy.AssetRefs.Pipelines", sourceAssembly:"Flexy.AssetRefs")]
+[Serializable]
 public class AddRefsFromDirectory : IPipelineTask
 {
 	[SerializeField]	DefaultAsset?	DirectoryOptional;

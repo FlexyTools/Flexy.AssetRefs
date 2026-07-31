@@ -1,5 +1,6 @@
 namespace Flexy.AssetRefs.Editor.PipelineTasks;
 
+[Serializable]
 public class ResourcesPopulateRefs : IPipelineTask
 {
 	[SerializeField] ContentService_Resources	ServicePrefab	= null!;
